@@ -1,7 +1,10 @@
 #include "ez-sp.h"
 #include "argxs.h"
 
+#include <stdlib.h>
+
 static void parse_arguments (const unsigned int, char**, struct ez_doc*);
+static void handle_argxs_error (char**, const struct argxs_res*);
 
 int main (int argc, char **argv)
 {
@@ -22,9 +25,7 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
     };
 
     const struct argxs_res *res = argxs_parse(argc, argv, flags);
-    if (res->fatal != argxs_fatal_none)
-    {
-    }
+    if (res->fatal != argxs_fatal_none) handle_argxs_error(argv, res);
 
     for (unsigned int i = 0; i < res->no_found; i++)
     {
@@ -37,6 +38,26 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
             case 'O': doc->out_filename = this->argument; break;
         }
     }
+}
 
-    printf("%s %s %s %c\n", doc->doc_filename, doc->fmt_filename, doc->out_filename, doc->sep);
+static void handle_argxs_error (char **argv, const struct argxs_res *res)
+{
+    fprintf(stderr, "ez-sp: Fatal error, cannot continue: %s\n", argxs_errors[res->fatal]);
+    switch (res->fatal)
+    {
+        case argxs_fatal_non_sense:
+        case argxs_fatal_undef_flag:
+            fprintf(stderr, "  located at %d within argv: %s\n", res->argc, argv[res->argc]);
+            break;
+        case argxs_fatal_unnecessary_arg:
+            fprintf(stderr, "  extra argument was given at %d within argv: %s\n", res->argc, argv[res->argc]);
+            fprintf(stderr, "  flag: %s\n", res->last->flag->flagname);
+            break;
+        case argxs_fatal_arg_expected:
+            fprintf(stderr, "  missing argument at %d within argv: %s\n", res->argc, argv[res->argc]);
+            fprintf(stderr, "  flag: %s\n", res->last->flag->flagname);
+            break;
+
+    }
+    exit(EXIT_FAILURE);
 }

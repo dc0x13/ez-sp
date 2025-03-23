@@ -6,10 +6,10 @@
 
 struct ez_doc
 {
-    char    *doc_filename;
-    char    *fmt_filename;
-    char    *out_filename;
-    char    sep;
+    char *doc_filename;
+    char *fmt_filename;
+    char *out_filename;
+    char sep;
 };
 
 
