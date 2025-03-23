@@ -103,7 +103,7 @@ struct argxs_res *argxs_parse (const unsigned int argc, char **argv, const struc
         }
     }
 
-    if (res->last && res->last->argument && res->last->flag && res->last->flag->q_arg == ARGXS_ARG_YES) res->fatal = argxs_fatal_arg_expected;
+    if (res->last && !res->last->argument && res->last->flag && res->last->flag->q_arg == ARGXS_ARG_YES) res->fatal = argxs_fatal_arg_expected;
     res->argc--;
 
     free(__flag_lengths);

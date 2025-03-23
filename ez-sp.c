@@ -1,10 +1,13 @@
 #include "ez-sp.h"
 #include "argxs.h"
+#include "usage.h"
 
 #include <stdlib.h>
 
 static void parse_arguments (const unsigned int, char**, struct ez_doc*);
 static void handle_argxs_error (char**, const struct argxs_res*);
+
+static void print_usage (const char*);
 
 int main (int argc, char **argv)
 {
@@ -17,10 +20,12 @@ int main (int argc, char **argv)
 static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc *doc)
 {
     const struct argxs_flag flags[] = {
-        {"doc", 'D', ARGXS_ARG_YES},
-        {"sep", 'S', ARGXS_ARG_MAY},
-        {"fmt", 'F', ARGXS_ARG_MAY},
-        {"out", 'O', ARGXS_ARG_MAY},
+        {"doc",   'D', ARGXS_ARG_YES},
+        {"sep",   'S', ARGXS_ARG_MAY},
+        {"fmt",   'F', ARGXS_ARG_MAY},
+        {"out",   'O', ARGXS_ARG_MAY},
+        {"help",  'h', ARGXS_ARG_MAY},
+        {"style", 's', ARGXS_ARG_MAY},
         ARGXS_FINAL_FLAG
     };
 
@@ -32,10 +37,12 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
         const struct argxs_found *this = &res->found[i];
         switch (this->flag->id)
         {
-            case 'D': doc->doc_filename = this->argument; break;
+            case 'D': doc->doc_filename = this->argument;  break;
             case 'S': doc->sep          = *this->argument; break;
-            case 'F': doc->fmt_filename = this->argument; break;
-            case 'O': doc->out_filename = this->argument; break;
+            case 'F': doc->fmt_filename = this->argument;  break;
+            case 'O': doc->out_filename = this->argument;  break;
+            case 's': doc->stl_filename = this->argument;  break;
+            case 'h': usage_usage(this->argument); break;
         }
     }
 }

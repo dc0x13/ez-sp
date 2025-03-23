@@ -9,6 +9,7 @@ struct ez_doc
     char *doc_filename;
     char *fmt_filename;
     char *out_filename;
+    char *stl_filename;
     char sep;
 };
 
