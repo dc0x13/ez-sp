@@ -1,25 +1,42 @@
-#include "ez-sp.h"
+#include "lexer.h"
 #include "argxs.h"
 #include "usage.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
+enum TokenKind
+{
+    token_is_string      = '"',
+    token_is_reference   = '@',
+    token_is_expr_init   = '=',
+    token_is_sub_sign    = '-',
+    token_is_mul_sign    = '*',
+    token_is_div_sign    = '/',
+    token_is_add_sign    = '+',
+    token_is_lhs_par     = '(',
+    token_is_rhs_par     = ')',
+    token_is_conditional = '?',
+    token_is_semicolon   = ';',
+    token_is_number      = 256,
+    token_is_true_bool,
+    token_is_false_bool
+};
+
 static void parse_arguments (const unsigned int, char**, struct program*);
 static void handle_argxs_error (char**, const struct argxs_res*);
 
-static size_t read_file_contents (const char*, char**);
-static void parse_document (struct program*);
-
-static void get_table_size (char*, unsigned int*, unsigned int*, const char);
+static size_t read_file_content (const char*, char**);
 
 int main (int argc, char **argv)
 {
-    struct program doc = { .args.sep  = '|' };
-    parse_arguments(argc, argv, &doc);
+    struct program p = { .args.sep  = '|' };
+    parse_arguments(argc, argv, &p);
 
-    if (doc.args.doc == NULL) usage_usage(NULL);
-    parse_document(&doc);
+    if (p.args.doc == NULL) usage_usage(NULL);
+    const size_t bytes = read_file_content(p.args.doc, &p.docstr);
+
+    lexer_(&p, bytes);
 
     return 0;
 }
@@ -78,7 +95,7 @@ static void handle_argxs_error (char **argv, const struct argxs_res *res)
     exit(EXIT_FAILURE);
 }
 
-static size_t read_file_contents (const char *filename, char **src)
+static size_t read_file_content (const char *filename, char **src)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -103,44 +120,4 @@ static size_t read_file_contents (const char *filename, char **src)
 
     fclose(file);
     return bytes;
-}
-
-static void parse_document (struct program *doc)
-{
-    const size_t bytes = read_file_contents(doc->args.doc, &doc->docstr);
-    get_table_size(doc->docstr, &doc->table.rows, &doc->table.cols, doc->args.sep);
-
-
-}
-
-static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const char sep)
-{
-    unsigned int c = 0;
-
-    while (*src)
-    {
-        const char this = *src++;
-        if (this == '\n')
-        {
-            *rows += 1;
-            *cols = *cols > c ? *cols : c;
-        }
-        else if (this == sep)
-        {
-            c++;
-        }
-    }
-    *cols = *cols > c ? *cols : c;
-
-    if (*cols == 0)
-    {
-        fprintf(stderr, "ez-sp: don't get it: there is zero columns, do you really want '%c' to be the separator?\n", sep);
-        exit(EXIT_FAILURE);
-    }
-
-    if (*rows == 0)
-    {
-        fprintf(stderr, "ez-sp: don't get it: there is zero rows, is there any contents in the table?\n");
-        exit(EXIT_FAILURE);
-    }
 }

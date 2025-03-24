@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 
-
 struct cell
 {
     int a;
@@ -11,7 +10,7 @@ struct cell
 
 struct table
 {
-    struct cell  *cells;
+    struct cell  *grid;
     unsigned int rows;
     unsigned int cols;
 };
