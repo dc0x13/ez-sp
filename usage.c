@@ -153,13 +153,13 @@ static void know_more_styles (void)
     printf("  7. Blink              - Makes text blink (ANSI and HTML only, HTML deprecated)\n\n");
 
     printf("Example Usage:\n");
-    printf("  - ANSI Output:\n");
+    printf("  - ANSI Output (SSV):\n");
     printf("      \033[31mRed Text\033[0m  (Foreground Red)\n");
     printf("      \033[1mBold Text\033[0m  (Bold)\n");
     printf("  - HTML Output:\n");
     printf("      <span style=\"color: red;\">Red Text</span>\n");
     printf("      <b>Bold Text</b>\n");
-    printf("  - SSV, JSON, Markdown Output:\n");
+    printf("  - Others Output:\n");
     printf("      No styling is applied. Output remains in raw text format.\n\n");
 
     printf("To specify formatting, use the `--style` flag with ANSI or HTML outputs.\n");

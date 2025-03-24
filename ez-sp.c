@@ -3,16 +3,21 @@
 #include "usage.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 static void parse_arguments (const unsigned int, char**, struct ez_doc*);
 static void handle_argxs_error (char**, const struct argxs_res*);
 
-static void print_usage (const char*);
+static size_t read_file_contents (const char*, char**);
+static void parse_document (struct ez_doc*);
 
 int main (int argc, char **argv)
 {
     struct ez_doc doc = { .sep  = '|' };
     parse_arguments(argc, argv, &doc);
+
+    if (doc.doc_filename == NULL) usage_usage(NULL);
+    parse_document(&doc);
 
     return 0;
 }
@@ -29,7 +34,7 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
         ARGXS_FINAL_FLAG
     };
 
-    const struct argxs_res *res = argxs_parse(argc, argv, flags);
+    struct argxs_res *res = argxs_parse(argc, argv, flags);
     if (res->fatal != argxs_fatal_none) handle_argxs_error(argv, res);
 
     for (unsigned int i = 0; i < res->no_found; i++)
@@ -39,12 +44,14 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
         {
             case 'D': doc->doc_filename = this->argument;  break;
             case 'S': doc->sep          = *this->argument; break;
-            case 'F': doc->fmt_filename = this->argument;  break;
+            case 'F': doc->format       = this->argument;  break;
             case 'O': doc->out_filename = this->argument;  break;
             case 's': doc->stl_filename = this->argument;  break;
             case 'h': usage_usage(this->argument); break;
         }
     }
+
+    argxs_clean(res);
 }
 
 static void handle_argxs_error (char **argv, const struct argxs_res *res)
@@ -67,4 +74,36 @@ static void handle_argxs_error (char **argv, const struct argxs_res *res)
 
     }
     exit(EXIT_FAILURE);
+}
+
+static size_t read_file_contents (const char *filename, char **src)
+{
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        fprintf(stderr, "ez-sp: Fatal error, cannot load '%s' file; make sure it exists and it has permissions to read\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(file, 0, SEEK_END);
+    const size_t bytes = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    *src = (char*) calloc(bytes + 1, sizeof(**src));
+    assert(*src && "internal error; cannot alloc");
+
+    const size_t read = fread(*src, 1, bytes, file);
+    if (read != bytes)
+    {
+        fprintf(stderr, "ez-sp: Fatal error, cannot read whole file, only %ld out of %ld bytes were read\n", read, bytes);
+        exit(EXIT_FAILURE);
+    }
+
+    fclose(file);
+    return bytes;
+}
+
+static void parse_document (struct ez_doc *doc)
+{
+    const size_t bytes = read_file_contents(doc->doc_filename, &doc->doc_content);
 }
