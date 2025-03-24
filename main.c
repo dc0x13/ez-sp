@@ -5,24 +5,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-enum TokenKind
-{
-    token_is_string      = '"',
-    token_is_reference   = '@',
-    token_is_expr_init   = '=',
-    token_is_sub_sign    = '-',
-    token_is_mul_sign    = '*',
-    token_is_div_sign    = '/',
-    token_is_add_sign    = '+',
-    token_is_lhs_par     = '(',
-    token_is_rhs_par     = ')',
-    token_is_conditional = '?',
-    token_is_semicolon   = ';',
-    token_is_number      = 256,
-    token_is_true_bool,
-    token_is_false_bool
-};
-
 static void parse_arguments (const unsigned int, char**, struct program*);
 static void handle_argxs_error (char**, const struct argxs_res*);
 
