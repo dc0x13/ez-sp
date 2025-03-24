@@ -4,14 +4,31 @@
 #include <stdio.h>
 
 
-struct ez_doc
+struct cell
 {
-    char *doc_filename;
-    char *format;
-    char *out_filename;
-    char *stl_filename;
-    char *doc_content;
-    char sep;
+    int a;
+};
+
+struct table
+{
+    struct cell  *cells;
+    unsigned int rows;
+    unsigned int cols;
+};
+
+struct program
+{
+    struct {
+        char  *doc;
+        char  *fmt;
+        char  *out;
+        char  *style;
+        char  sep;
+    } args;
+
+    struct table  table;
+    char          *docstr;
+    char          sep;
 };
 
 

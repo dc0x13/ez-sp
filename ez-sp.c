@@ -5,24 +5,26 @@
 #include <stdlib.h>
 #include <assert.h>
 
-static void parse_arguments (const unsigned int, char**, struct ez_doc*);
+static void parse_arguments (const unsigned int, char**, struct program*);
 static void handle_argxs_error (char**, const struct argxs_res*);
 
 static size_t read_file_contents (const char*, char**);
-static void parse_document (struct ez_doc*);
+static void parse_document (struct program*);
+
+static void get_table_size (char*, unsigned int*, unsigned int*, const char);
 
 int main (int argc, char **argv)
 {
-    struct ez_doc doc = { .sep  = '|' };
+    struct program doc = { .args.sep  = '|' };
     parse_arguments(argc, argv, &doc);
 
-    if (doc.doc_filename == NULL) usage_usage(NULL);
+    if (doc.args.doc == NULL) usage_usage(NULL);
     parse_document(&doc);
 
     return 0;
 }
 
-static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc *doc)
+static void parse_arguments (const unsigned int argc, char **argv, struct program *doc)
 {
     const struct argxs_flag flags[] = {
         {"doc",   'D', ARGXS_ARG_YES},
@@ -42,11 +44,11 @@ static void parse_arguments (const unsigned int argc, char **argv, struct ez_doc
         const struct argxs_found *this = &res->found[i];
         switch (this->flag->id)
         {
-            case 'D': doc->doc_filename = this->argument;  break;
-            case 'S': doc->sep          = *this->argument; break;
-            case 'F': doc->format       = this->argument;  break;
-            case 'O': doc->out_filename = this->argument;  break;
-            case 's': doc->stl_filename = this->argument;  break;
+            case 'D': doc->args.doc   = this->argument;  break;
+            case 'S': doc->args.sep   = *this->argument; break;
+            case 'F': doc->args.fmt   = this->argument;  break;
+            case 'O': doc->args.out   = this->argument;  break;
+            case 's': doc->args.style = this->argument;  break;
             case 'h': usage_usage(this->argument); break;
         }
     }
@@ -103,7 +105,42 @@ static size_t read_file_contents (const char *filename, char **src)
     return bytes;
 }
 
-static void parse_document (struct ez_doc *doc)
+static void parse_document (struct program *doc)
 {
-    const size_t bytes = read_file_contents(doc->doc_filename, &doc->doc_content);
+    const size_t bytes = read_file_contents(doc->args.doc, &doc->docstr);
+    get_table_size(doc->docstr, &doc->table.rows, &doc->table.cols, doc->args.sep);
+
+
+}
+
+static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const char sep)
+{
+    unsigned int c = 0;
+
+    while (*src)
+    {
+        const char this = *src++;
+        if (this == '\n')
+        {
+            *rows += 1;
+            *cols = *cols > c ? *cols : c;
+        }
+        else if (this == sep)
+        {
+            c++;
+        }
+    }
+    *cols = *cols > c ? *cols : c;
+
+    if (*cols == 0)
+    {
+        fprintf(stderr, "ez-sp: don't get it: there is zero columns, do you really want '%c' to be the separator?\n", sep);
+        exit(EXIT_FAILURE);
+    }
+
+    if (*rows == 0)
+    {
+        fprintf(stderr, "ez-sp: don't get it: there is zero rows, is there any contents in the table?\n");
+        exit(EXIT_FAILURE);
+    }
 }
