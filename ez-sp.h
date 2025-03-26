@@ -3,7 +3,13 @@
 
 #include <stdio.h>
 
-enum TokenKind
+/* Specifies the maximum number of tokens per cell,
+ * no cell can have more than this, if this number
+ * is exceeded an error will pop up
+ * */
+#define __macro_tokens_per_cell     32
+
+enum token_kind
 {
     token_is_string      = '"',
     token_is_varia_ref   = '@',
@@ -24,14 +30,30 @@ enum TokenKind
     
 };
 
-enum CellKind
+enum cell_kind
 {
-    sdfrgt
+    cell_is_not_defined  = 0,
+    cell_is_number_const = 1,
+    cell_is_string_const = 2,
+};
+
+struct token
+{
+    struct
+    {
+        char         *defat;
+        unsigned int numline;
+        unsigned int offset;
+        unsigned int table_column;
+    } def_info;
+
+    enum token_kind kind;
 };
 
 struct cell
 {
-    int a;
+    struct  token[__macro_tokens_per_cell];
+    enum    cell_kind kind;
 };
 
 struct table
@@ -43,7 +65,8 @@ struct table
 
 struct program
 {
-    struct {
+    struct
+    {
         char  *doc;
         char  *fmt;
         char  *out;
