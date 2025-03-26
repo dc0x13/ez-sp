@@ -30,6 +30,12 @@ enum token_kind
     
 };
 
+/* Premature defintion of `cell` struct in order to be able to
+ * have a reference to a cell within a token
+ * see struct token -> as -> ref
+ */
+struct cell;
+
 enum cell_kind
 {
     cell_is_not_defined  = 0,
@@ -41,18 +47,25 @@ struct token
 {
     struct
     {
-        char         *defat;
+        char         *def_line;
+        unsigned int def_len;
         unsigned int numline;
         unsigned int offset;
-        unsigned int table_column;
-    } def_info;
-
+        unsigned int column;
+    } info;
+    union
+    {
+        char         *text;
+        double       number;
+        struct cell *ref;
+    } as;
     enum token_kind kind;
 };
 
 struct cell
 {
-    struct  token[__macro_tokens_per_cell];
+    struct  token     stream[__macro_tokens_per_cell];
+    unsigned int      streamsz;
     enum    cell_kind kind;
 };
 
@@ -78,6 +91,5 @@ struct program
     char          *docstr;
     char          sep;
 };
-
 
 #endif

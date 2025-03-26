@@ -1,8 +1,8 @@
 #include "lexer.h"
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #define macro_get_row_number(numberline)   (numberline - 1)
 
@@ -14,6 +14,7 @@ struct lexer_info
 };
 
 static void get_table_size (char*, unsigned int*, unsigned*, const char);
+static void token_found (struct cell*, struct token*);
 
 void lexer_ (struct program *_p, const size_t bytes)
 {
@@ -40,12 +41,27 @@ void lexer_ (struct program *_p, const size_t bytes)
 
         if (isspace(chr))
         {
-            if (chr == '\n' && info.numberline < _p->table.rows) cell = &_p->table.grid[(++info.numberline) * _p->table.cols];
-            info.offsetline = 0;
+            if (chr == '\n' && info.numberline < _p->table.rows)
+            {
+                cell = &_p->table.grid[(++info.numberline) * _p->table.cols];
+                info.offsetline = 0;
+                info.column = 0;
+            }
+            else info.offsetline++;
             continue;
         }
         if (chr == _p->args.sep) { info.offsetline++; info.column++; cell++; continue; }
-        continue;
+
+        /* Current token defintion, its definition within the table might be wrong
+         * but this is the standard defintion, also used for error handling
+         */
+        struct token token = {
+            .info.def_line = _p->docstr + i,
+            .info.def_len  = 1,
+            .info.numline  = info.numberline,
+            .info.offset   = info.offsetline++,
+            .info.column   = info.column
+        };
 
         switch (chr)
         {
@@ -60,6 +76,8 @@ void lexer_ (struct program *_p, const size_t bytes)
             case token_is_add_sign:
             case token_is_lhs_par:
             case token_is_rhs_par:
+                token.kind = (enum token_kind) chr;
+                token_found(cell, &token);
                 break;
 
             case token_is_sub_sign:
@@ -82,6 +100,9 @@ void lexer_ (struct program *_p, const size_t bytes)
             
             case token_is_const_ref:
             case token_is_varia_ref:
+                break;
+            
+            default:
                 break;
         }
     }
@@ -109,4 +130,17 @@ static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const
         fprintf(stderr, "ez-sp: don't get it: there is zero rows, is there any content in the table?\n");
         exit(EXIT_FAILURE);
     }
+}
+
+static void token_found (struct cell *cell, struct token *token)
+{
+    if (cell->streamsz == __macro_tokens_per_cell)
+    {
+        abort();
+    }
+
+    printf("token found: <%d> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
+    token->kind, token->info.def_len, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+
+    memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }

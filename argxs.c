@@ -212,4 +212,3 @@ static enum argxs_fatal handle_shrt_flag (const char id, const struct argxs_flag
     _flag->argument = NULL;
     return argxs_fatal_none;
 }
-
