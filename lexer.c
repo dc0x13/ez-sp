@@ -16,6 +16,8 @@ struct lexer_info
 static void get_table_size (char*, unsigned int*, unsigned*, const char);
 static void token_found (struct cell*, struct token*);
 
+static size_t number_literal_found (unsigned int*, struct token*);
+
 void lexer_ (struct program *_p, const size_t bytes)
 {
     get_table_size(_p->docstr, &_p->table.rows, &_p->table.cols, _p->args.sep);
@@ -81,6 +83,8 @@ void lexer_ (struct program *_p, const size_t bytes)
                 break;
 
             case token_is_sub_sign:
+                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) {}
+                else { token.kind = token_is_sub_sign; token_found(cell, &token); }
                 break;
 
             case '0':
@@ -93,6 +97,8 @@ void lexer_ (struct program *_p, const size_t bytes)
             case '7':
             case '8':
             case '9':
+                i += number_literal_found(&info.offsetline, &token);
+                token_found(cell, &token);
                 break;
             
             case token_is_string:
@@ -143,4 +149,16 @@ static void token_found (struct cell *cell, struct token *token)
     token->kind, token->info.def_len, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
 
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
+}
+
+static size_t number_literal_found (unsigned int *offset, struct token *token)
+{
+    char *fini = NULL;
+    token->as.number = strtold(token->info.def_line, &fini);
+
+    token->info.def_len = (unsigned int) (fini - token->info.def_line);
+    *offset += token->info.def_len;
+
+    token->kind = token_is_number;
+    return (size_t) token->info.def_len;
 }

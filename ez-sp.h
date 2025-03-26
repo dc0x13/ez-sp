@@ -56,7 +56,7 @@ struct token
     union
     {
         char         *text;
-        double       number;
+        long double  number;
         struct cell *ref;
     } as;
     enum token_kind kind;
