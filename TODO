@@ -1,0 +1,6 @@
+
+    * Parse single tokens                   ok
+    * Parse numbers                         ok
+    * Parse strings                         ok
+    * Parse references
+    * Handle seg faults in a gracefully way

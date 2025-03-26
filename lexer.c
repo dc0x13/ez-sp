@@ -17,6 +17,7 @@ static void get_table_size (char*, unsigned int*, unsigned*, const char);
 static void token_found (struct cell*, struct token*);
 
 static size_t number_literal_found (unsigned int*, struct token*);
+static size_t string_literal_found (unsigned int*, struct token*);
 
 void lexer_ (struct program *_p, const size_t bytes)
 {
@@ -102,6 +103,8 @@ void lexer_ (struct program *_p, const size_t bytes)
                 break;
             
             case token_is_string:
+                i += string_literal_found(&info.offsetline, &token);
+                token_found(cell, &token);
                 break;
             
             case token_is_const_ref:
@@ -151,14 +154,31 @@ static void token_found (struct cell *cell, struct token *token)
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 
-static size_t number_literal_found (unsigned int *offset, struct token *token)
+static size_t number_literal_found (unsigned int *db, struct token *token)
 {
     char *fini = NULL;
     token->as.number = strtold(token->info.def_line, &fini);
 
     token->info.def_len = (unsigned int) (fini - token->info.def_line);
-    *offset += token->info.def_len;
+    *db += token->info.def_len;
 
     token->kind = token_is_number;
-    return (size_t) token->info.def_len;
+    return (size_t) token->info.def_len - 1;
+}
+
+static size_t string_literal_found (unsigned int *db, struct token *token)
+{
+    size_t k = 1;
+    for (; token->info.def_line[k] && token->info.def_line[k] != '"'; k++);
+    
+    /* This defines the token length, not the string length.
+     * string_length = token_len - 2, we need to get rid of
+     * the quotes
+     */
+    token->info.def_len = k + 1;
+    *db += k;
+
+    token->kind = token_is_string;
+    token->as.text = token->info.def_line;
+    return k;
 }
