@@ -1,10 +1,11 @@
 #include "lexer.h"
 #include <ctype.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #define macro_get_row_number(numberline)   (numberline - 1)
+
+static unsigned int *Base25;
 
 struct lexer_info
 {
@@ -14,16 +15,22 @@ struct lexer_info
 };
 
 static void get_table_size (char*, unsigned int*, unsigned*, const char);
-static void token_found (struct cell*, struct token*);
+static void gen_base_25 (const unsigned int);
 
+static void token_found (struct cell*, struct token*);
 static size_t number_literal_found (unsigned int*, struct token*);
+
 static size_t string_literal_found (unsigned int*, struct token*);
+static size_t referece_literal_found (unsigned int*, struct token*);
 
 void lexer_ (struct program *_p, const size_t bytes)
 {
     get_table_size(_p->docstr, &_p->table.rows, &_p->table.cols, _p->args.sep);
+    gen_base_25(_p->table.cols);
+
+
     _p->table.grid = (struct cell*) calloc(_p->table.cols * _p->table.rows, sizeof(struct cell));
-    assert(_p->table.grid && "internal error; cannot alloc");
+    __macro_check_ptr(_p->table.grid, "lexer");
 
     struct lexer_info info = {
         .numberline = 1,
@@ -55,15 +62,15 @@ void lexer_ (struct program *_p, const size_t bytes)
         }
         if (chr == _p->args.sep) { info.offsetline++; info.column++; cell++; continue; }
 
-        /* Current token defintion, its definition within the table might be wrong
-         * but this is the standard defintion, also used for error handling
+        /* Current token definition, its definition within the table might be wrong
+         * but this is the standard definition, also used for error handling
          */
         struct token token = {
-            .info.def_line = _p->docstr + i,
-            .info.def_len  = 1,
+            .info.definition = _p->docstr + i,
+            .info.length  = 1,
             .info.numline  = info.numberline,
             .info.offset   = info.offsetline++,
-            .info.column   = info.column
+            .info.column   = info.column,
         };
 
         switch (chr)
@@ -84,8 +91,11 @@ void lexer_ (struct program *_p, const size_t bytes)
                 break;
 
             case token_is_sub_sign:
-                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) {}
-                else { token.kind = token_is_sub_sign; token_found(cell, &token); }
+                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1]))
+                    number_literal_found(&info.offsetline, &token);
+                else
+                    token.kind = token_is_sub_sign;
+                token_found(cell, &token);
                 break;
 
             case '0':
@@ -109,6 +119,7 @@ void lexer_ (struct program *_p, const size_t bytes)
             
             case token_is_const_ref:
             case token_is_varia_ref:
+                referece_literal_found(&info.offsetline, &token);
                 break;
             
             default:
@@ -141,44 +152,59 @@ static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const
     }
 }
 
+static void gen_base_25 (const unsigned int columns)
+{
+    Base25 = (unsigned int*) calloc(columns, sizeof(*Base25));
+    __macro_check_ptr(Base25, "lexer");
+
+    Base25[0] = 1;
+
+    for (unsigned int i = 2; i <= columns; i++)
+        Base25[i] = Base25[i - 1] * 25;
+}
+
 static void token_found (struct cell *cell, struct token *token)
 {
     if (cell->streamsz == __macro_tokens_per_cell)
     {
-        abort();
+        __macro_mark_todo("error handling");
     }
 
     printf("token found: <%d> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
-    token->kind, token->info.def_len, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+    token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
 
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 
-static size_t number_literal_found (unsigned int *db, struct token *token)
+static size_t number_literal_found (unsigned int *offset, struct token *token)
 {
     char *fini = NULL;
-    token->as.number = strtold(token->info.def_line, &fini);
+    token->as.number = strtold(token->info.definition, &fini);
 
-    token->info.def_len = (unsigned int) (fini - token->info.def_line);
-    *db += token->info.def_len;
+    token->info.length = (unsigned int) (fini - token->info.definition);
+    *offset += token->info.length;
 
     token->kind = token_is_number;
-    return (size_t) token->info.def_len - 1;
+    return (size_t) token->info.length - 1;
 }
 
-static size_t string_literal_found (unsigned int *db, struct token *token)
+static size_t string_literal_found (unsigned int *offset, struct token *token)
 {
     size_t k = 1;
-    for (; token->info.def_line[k] && token->info.def_line[k] != '"'; k++);
+    for (; token->info.definition[k] && token->info.definition[k] != '"'; k++);
     
     /* This defines the token length, not the string length.
      * string_length = token_len - 2, we need to get rid of
      * the quotes
      */
-    token->info.def_len = k + 1;
-    *db += k;
+    token->info.length = k + 1;
+    *offset += k;
 
     token->kind = token_is_string;
-    token->as.text = token->info.def_line;
+    token->as.text = token->info.definition;
     return k;
+}
+
+static size_t referece_literal_found (unsigned int *offset, struct token *token)
+{
 }

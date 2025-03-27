@@ -2,12 +2,19 @@
 #define EZ_SP_H
 
 #include <stdio.h>
+#include <err.h>
 
 /* Specifies the maximum number of tokens per cell,
  * no cell can have more than this, if this number
  * is exceeded an error will pop up
  * */
-#define __macro_tokens_per_cell     32
+#define __macro_tokens_per_cell         32
+
+#define __macro_variable_reference      0
+#define __macro_constant_reference      1
+
+#define __macro_check_ptr(ptr, proc)    do { if (ptr) break; err(-1, "ez-sp:fatal:%s", proc); } while (0)
+#define __macro_mark_todo(ToDo)         do { printf("todo:%s:%d: %s\n", __FILE__, __LINE__, ToDo); } while (0)
 
 enum token_kind
 {
@@ -47,8 +54,8 @@ struct token
 {
     struct
     {
-        char         *def_line;
-        unsigned int def_len;
+        char         *definition;
+        unsigned int length;
         unsigned int numline;
         unsigned int offset;
         unsigned int column;
@@ -60,6 +67,7 @@ struct token
         struct cell *ref;
     } as;
     enum token_kind kind;
+    unsigned char   ref_is;
 };
 
 struct cell

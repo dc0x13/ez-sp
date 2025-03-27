@@ -3,7 +3,6 @@
 #include "usage.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 static void parse_arguments (const unsigned int, char**, struct program*);
 static void handle_argxs_error (char**, const struct argxs_res*);
@@ -91,7 +90,7 @@ static size_t read_file_content (const char *filename, char **src)
     fseek(file, 0, SEEK_SET);
 
     *src = (char*) calloc(bytes + 1, sizeof(**src));
-    assert(*src && "internal error; cannot alloc");
+    __macro_check_ptr(src, "pre-lexer");
 
     const size_t read = fread(*src, 1, bytes, file);
     if (read != bytes)
