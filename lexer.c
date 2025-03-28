@@ -21,13 +21,14 @@ static void token_found (struct cell*, struct token*);
 static size_t number_literal_found (unsigned int*, struct token*);
 
 static size_t string_literal_found (unsigned int*, struct token*);
-static size_t referece_literal_found (unsigned int*, struct token*);
+static size_t referece_literal_found (unsigned int*, struct token*, const unsigned int, const unsigned int, const char);
+
+static size_t extract_number_from_source (const char*, long double*);
 
 void lexer_ (struct program *_p, const size_t bytes)
 {
     get_table_size(_p->docstr, &_p->table.rows, &_p->table.cols, _p->args.sep);
     gen_base_25(_p->table.cols);
-
 
     _p->table.grid = (struct cell*) calloc(_p->table.cols * _p->table.rows, sizeof(struct cell));
     __macro_check_ptr(_p->table.grid, "lexer");
@@ -87,15 +88,11 @@ void lexer_ (struct program *_p, const size_t bytes)
             case token_is_lhs_par:
             case token_is_rhs_par:
                 token.kind = (enum token_kind) chr;
-                token_found(cell, &token);
                 break;
 
             case token_is_sub_sign:
-                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1]))
-                    number_literal_found(&info.offsetline, &token);
-                else
-                    token.kind = token_is_sub_sign;
-                token_found(cell, &token);
+                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) { number_literal_found(&info.offsetline, &token); }
+                else { token.kind = token_is_sub_sign; }
                 break;
 
             case '0':
@@ -109,22 +106,22 @@ void lexer_ (struct program *_p, const size_t bytes)
             case '8':
             case '9':
                 i += number_literal_found(&info.offsetline, &token);
-                token_found(cell, &token);
                 break;
             
             case token_is_string:
                 i += string_literal_found(&info.offsetline, &token);
-                token_found(cell, &token);
                 break;
             
             case token_is_const_ref:
             case token_is_varia_ref:
-                referece_literal_found(&info.offsetline, &token);
+                i += referece_literal_found(&info.offsetline, &token, _p->table.rows, _p->table.cols, chr);
                 break;
             
             default:
                 break;
         }
+
+        token_found(cell, &token);
     }
 }
 
@@ -159,7 +156,7 @@ static void gen_base_25 (const unsigned int columns)
 
     Base25[0] = 1;
 
-    for (unsigned int i = 2; i <= columns; i++)
+    for (unsigned int i = 1; i < columns; i++)
         Base25[i] = Base25[i - 1] * 25;
 }
 
@@ -170,7 +167,7 @@ static void token_found (struct cell *cell, struct token *token)
         __macro_mark_todo("error handling");
     }
 
-    printf("token found: <%d> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
+    printf("token found: <%c> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
     token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
 
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
@@ -178,10 +175,7 @@ static void token_found (struct cell *cell, struct token *token)
 
 static size_t number_literal_found (unsigned int *offset, struct token *token)
 {
-    char *fini = NULL;
-    token->as.number = strtold(token->info.definition, &fini);
-
-    token->info.length = (unsigned int) (fini - token->info.definition);
+    token->info.length = extract_number_from_source(token->info.definition, &token->as.number);
     *offset += token->info.length;
 
     token->kind = token_is_number;
@@ -205,6 +199,48 @@ static size_t string_literal_found (unsigned int *offset, struct token *token)
     return k;
 }
 
-static size_t referece_literal_found (unsigned int *offset, struct token *token)
+static size_t referece_literal_found (unsigned int *offset, struct token *token, const unsigned int nrows, const unsigned int ncols, const char kind)
 {
+    char *src = token->info.definition + 1;
+    token->info.length = 0;
+
+    while (isalpha(src[token->info.length])) token->info.length++;
+    if (token->info.length == 0)
+    {
+        abort();
+    }
+
+    unsigned int column = 0;
+    long double row__ = 0;
+
+    for (unsigned int i = 0; i < token->info.length; i++)
+        column += (tolower(src[i]) - 'a' + 1) * Base25[token->info.length - i - 1];
+    
+    src += token->info.length;
+    if (!isdigit(*src))
+    {
+        abort();
+    }
+
+    token->info.length += (unsigned int) extract_number_from_source(src, &row__);
+    unsigned int row = (unsigned int) row__;
+
+    if (row >= nrows || --column >= ncols)
+    {
+        abort();
+    }
+
+    token->as.ref.row = row;
+    token->as.ref.col = column;
+    token->kind = (kind == '@') ? token_is_varia_ref : token_is_const_ref;
+
+    *offset += token->info.length;
+    return token->info.length++;
+}
+
+static size_t extract_number_from_source (const char *source, long double *number)
+{
+    char *ends;
+    *number = strtold(source, &ends);
+    return (size_t) (ends - source);
 }

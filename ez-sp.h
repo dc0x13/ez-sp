@@ -10,9 +10,6 @@
  * */
 #define __macro_tokens_per_cell         32
 
-#define __macro_variable_reference      0
-#define __macro_constant_reference      1
-
 #define __macro_check_ptr(ptr, proc)    do { if (ptr) break; err(-1, "ez-sp:fatal:%s", proc); } while (0)
 #define __macro_mark_todo(ToDo)         do { printf("todo:%s:%d: %s\n", __FILE__, __LINE__, ToDo); } while (0)
 
@@ -62,9 +59,10 @@ struct token
     } info;
     union
     {
-        char         *text;
-        long double  number;
-        struct cell *ref;
+        char        *text;
+        long double number;
+        struct      { unsigned row, col; struct cell *ptr; } ref;
+        
     } as;
     enum token_kind kind;
     unsigned char   ref_is;
