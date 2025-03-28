@@ -7,6 +7,15 @@
 
 static unsigned int *Base25;
 
+enum error_kind
+{
+    error_is_reference_outta_bounds = 0,
+};
+
+static const char *const WhyError[] = {
+    "reference is outta bounds, check table's size",
+};
+
 struct lexer_info
 {
     unsigned int numberline;
@@ -24,6 +33,7 @@ static size_t string_literal_found (unsigned int*, struct token*);
 static size_t referece_literal_found (unsigned int*, struct token*, const unsigned int, const unsigned int, const char);
 
 static size_t extract_number_from_source (const char*, long double*);
+static void error_inform (const struct token, const enum error_kind);
 
 void lexer_ (struct program *_p, const size_t bytes)
 {
@@ -205,6 +215,7 @@ static size_t referece_literal_found (unsigned int *offset, struct token *token,
     token->info.length = 0;
 
     while (isalpha(src[token->info.length])) token->info.length++;
+
     if (token->info.length == 0)
     {
         abort();
@@ -227,7 +238,7 @@ static size_t referece_literal_found (unsigned int *offset, struct token *token,
 
     if (row >= nrows || --column >= ncols)
     {
-        abort();
+        error_inform(*token, 0);
     }
 
     token->as.ref.row = row;
@@ -235,7 +246,7 @@ static size_t referece_literal_found (unsigned int *offset, struct token *token,
     token->kind = (kind == '@') ? token_is_varia_ref : token_is_const_ref;
 
     *offset += token->info.length;
-    return token->info.length++;
+    return token->info.length - 1;
 }
 
 static size_t extract_number_from_source (const char *source, long double *number)
@@ -243,4 +254,21 @@ static size_t extract_number_from_source (const char *source, long double *numbe
     char *ends;
     *number = strtold(source, &ends);
     return (size_t) (ends - source);
+}
+
+
+static void error_inform (const struct token token, const enum error_kind error)
+{
+    fprintf(stderr, "\nez-sp: fatal error while lexing\n");
+    fprintf(stderr, "token is located at %dth row and %dth column\n", macro_get_row_number(token.info.numline), token.info.column);
+
+    unsigned int context = 0;
+
+    while (token.info.definition[context] != '\n') context++;
+    fprintf(stderr, "  %-5.d  %.*s\n         ", token.info.numline, context, token.info.definition);
+
+    for (unsigned int i = 1; i <= token.info.length; i++) fputc('~', stderr);
+
+    fprintf(stderr, "\nreason: %s\n\n", WhyError[error]);
+    exit(EXIT_FAILURE);
 }
