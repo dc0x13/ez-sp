@@ -4,16 +4,37 @@
 #include <string.h>
 
 #define macro_get_row_number(numberline)   (numberline - 1)
+#define macro_phase                        "lexer"
 
+/* To parse column names the Base25 is used
+ * in the following way:
+ * @abc69
+ * a = 26^2 * 1
+ * b = 26^1 * 2
+ * c = 26^0 * 3
+ */
 static unsigned int *Base25;
+
+/* Reason why the lexer failed at any possible
+ * stage
+ */
+static const char *const WhyError[] = {
+    "reference is outta bounds, check table's size",
+    "token is not defined, see ez-sp --help=tokens",
+    "cell has reached its limit of tokens",
+    "syntax error",
+};
 
 enum error_kind
 {
-    error_is_reference_outta_bounds = 0,
-};
-
-static const char *const WhyError[] = {
-    "reference is outta bounds, check table's size",
+    /* Referece token is outta table's bounds */
+    error_is_due_to_bounds = 0,
+    /* Unknonwn token to the program */
+    error_is_due_to_unknown,
+    /* cell cannot longer store more tokens */
+    error_is_due_to_cell_is_fuil,
+    /* bad definition, mostly for references... */
+    error_is_due_to_syntax_error
 };
 
 struct lexer_info
@@ -35,13 +56,13 @@ static size_t referece_literal_found (unsigned int*, struct token*, const unsign
 static size_t extract_number_from_source (const char*, long double*);
 static void error_inform (const struct token, const enum error_kind);
 
-void lexer_ (struct program *_p, const size_t bytes)
+void lexer_init (struct program *_p, const size_t bytes)
 {
     get_table_size(_p->docstr, &_p->table.rows, &_p->table.cols, _p->args.sep);
     gen_base_25(_p->table.cols);
 
     _p->table.grid = (struct cell*) calloc(_p->table.cols * _p->table.rows, sizeof(struct cell));
-    __macro_check_ptr(_p->table.grid, "lexer");
+    __macro_check_ptr(_p->table.grid, macro_phase);
 
     struct lexer_info info = {
         .numberline = 1,
@@ -59,7 +80,6 @@ void lexer_ (struct program *_p, const size_t bytes)
     for (size_t i = 0; i < bytes; i++)
     {
         const char chr = _p->docstr[i];
-
         if (isspace(chr))
         {
             if (chr == '\n' && info.numberline < _p->table.rows)
@@ -71,17 +91,24 @@ void lexer_ (struct program *_p, const size_t bytes)
             else info.offsetline++;
             continue;
         }
-        if (chr == _p->args.sep) { info.offsetline++; info.column++; cell++; continue; }
+
+        if (chr == _p->args.sep)
+        {
+            info.offsetline++;
+            info.column++;
+            cell++;
+            continue;
+        }
 
         /* Current token definition, its definition within the table might be wrong
          * but this is the standard definition, also used for error handling
          */
         struct token token = {
             .info.definition = _p->docstr + i,
-            .info.length  = 1,
-            .info.numline  = info.numberline,
-            .info.offset   = info.offsetline++,
-            .info.column   = info.column,
+            .info.length     = 1,
+            .info.numline    = info.numberline,
+            .info.offset     = info.offsetline++,
+            .info.column     = info.column,
         };
 
         switch (chr)
@@ -101,8 +128,8 @@ void lexer_ (struct program *_p, const size_t bytes)
                 break;
 
             case token_is_sub_sign:
-                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) { number_literal_found(&info.offsetline, &token); }
-                else { token.kind = token_is_sub_sign; }
+                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) number_literal_found(&info.offsetline, &token);
+                else                                               token.kind = token_is_sub_sign;
                 break;
 
             case '0':
@@ -130,7 +157,6 @@ void lexer_ (struct program *_p, const size_t bytes)
             default:
                 break;
         }
-
         token_found(cell, &token);
     }
 }
@@ -162,7 +188,7 @@ static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const
 static void gen_base_25 (const unsigned int columns)
 {
     Base25 = (unsigned int*) calloc(columns, sizeof(*Base25));
-    __macro_check_ptr(Base25, "lexer");
+    __macro_check_ptr(Base25, macro_phase);
 
     Base25[0] = 1;
 
@@ -172,14 +198,10 @@ static void gen_base_25 (const unsigned int columns)
 
 static void token_found (struct cell *cell, struct token *token)
 {
-    if (cell->streamsz == __macro_tokens_per_cell)
-    {
-        __macro_mark_todo("error handling");
-    }
+    if (cell->streamsz == __macro_tokens_per_cell) error_inform(*token, error_is_due_to_cell_is_fuil);
 
     printf("token found: <%c> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
     token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
-
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 
@@ -211,42 +233,46 @@ static size_t string_literal_found (unsigned int *offset, struct token *token)
 
 static size_t referece_literal_found (unsigned int *offset, struct token *token, const unsigned int nrows, const unsigned int ncols, const char kind)
 {
+    enum error_kind paila;
     char *src = token->info.definition + 1;
-    token->info.length = 0;
 
-    while (isalpha(src[token->info.length])) token->info.length++;
+    while (isalpha(src[token->info.length]))
+    { token->info.length++; }
 
     if (token->info.length == 0)
-    {
-        abort();
-    }
+    { paila = error_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
 
     unsigned int column = 0;
     long double row__ = 0;
 
     for (unsigned int i = 0; i < token->info.length; i++)
-        column += (tolower(src[i]) - 'a' + 1) * Base25[token->info.length - i - 1];
+    { column += (tolower(src[i]) - 'a' + 1) * Base25[token->info.length - i - 1]; }
     
     src += token->info.length;
     if (!isdigit(*src))
-    {
-        abort();
-    }
+    { paila = error_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
 
     token->info.length += (unsigned int) extract_number_from_source(src, &row__);
     unsigned int row = (unsigned int) row__;
 
     if (row >= nrows || --column >= ncols)
-    {
-        error_inform(*token, 0);
-    }
+    { paila = error_is_due_to_bounds; goto la_madre_que_lo_pario; }
 
     token->as.ref.row = row;
     token->as.ref.col = column;
     token->kind = (kind == '@') ? token_is_varia_ref : token_is_const_ref;
 
     *offset += token->info.length;
-    return token->info.length - 1;
+    return token->info.length++;
+
+la_madre_que_lo_pario:
+    /* At the beginning @ | $ character is ignored, therefore
+     * we need to include it to mark the whole token as error
+     */
+    token->info.length++;
+    error_inform(*token, paila);
+
+    return 0;
 }
 
 static size_t extract_number_from_source (const char *source, long double *number)
@@ -255,7 +281,6 @@ static size_t extract_number_from_source (const char *source, long double *numbe
     *number = strtold(source, &ends);
     return (size_t) (ends - source);
 }
-
 
 static void error_inform (const struct token token, const enum error_kind error)
 {

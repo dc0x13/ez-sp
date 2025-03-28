@@ -31,12 +31,11 @@ enum token_kind
     token_is_true_bool   = 'T',
     token_is_false_bool  = 'F',
     token_is_number      = 256,
-    
 };
 
-/* Premature defintion of `cell` struct in order to be able to
- * have a reference to a cell within a token
- * see struct token -> as -> ref
+/* Premature defintion of `cell` struct in order
+ * to be able to have a reference to a cell within
+ * a token see `struct token -> as -> ref`
  */
 struct cell;
 
@@ -45,6 +44,7 @@ enum cell_kind
     cell_is_not_defined  = 0,
     cell_is_number_const = 1,
     cell_is_string_const = 2,
+    cell_is_error        = 3
 };
 
 struct token
@@ -65,14 +65,13 @@ struct token
         
     } as;
     enum token_kind kind;
-    unsigned char   ref_is;
 };
 
 struct cell
 {
-    struct  token     stream[__macro_tokens_per_cell];
-    unsigned int      streamsz;
-    enum    cell_kind kind;
+    struct token   stream[__macro_tokens_per_cell];
+    unsigned int   streamsz;
+    enum cell_kind kind;
 };
 
 struct table
@@ -92,10 +91,8 @@ struct program
         char  *style;
         char  sep;
     } args;
-
     struct table  table;
     char          *docstr;
-    char          sep;
 };
 
 #endif

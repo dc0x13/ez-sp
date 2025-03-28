@@ -1,6 +1,10 @@
 
-    * Parse single tokens                   ok
-    * Parse numbers                         ok
-    * Parse strings                         ok
-    * Parse references
-    * Handle seg faults in a gracefully way ok
+    * Parse single tokens                       ok
+    * Parse numbers                             ok
+    * Parse strings                             ok
+    * Parse references                          ok
+    * Handle seg faults in a gracefully way     ok
+    * stress lexer
+    * better names for usage and stuff
+    * --help=tokens
+    * --help=define-style

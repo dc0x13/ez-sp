@@ -17,8 +17,7 @@ int main (int argc, char **argv)
     if (p.args.doc == NULL) usage_usage(NULL);
     const size_t bytes = read_file_content(p.args.doc, &p.docstr);
 
-    lexer_(&p, bytes);
-
+    lexer_init(&p, bytes);
     return 0;
 }
 

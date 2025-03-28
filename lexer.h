@@ -3,6 +3,6 @@
 
 #include "ez-sp.h"
 
-void lexer_ (struct program*, const size_t);
+void lexer_init (struct program*, const size_t);
 
 #endif
