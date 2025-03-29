@@ -4,7 +4,6 @@
     * Parse strings                             ok
     * Parse references                          ok
     * Handle seg faults in a gracefully way     ok
-    * stress lexer
-    * better names for usage and stuff
-    * --help=tokens
-    * --help=define-style
+    * stress lexer                              ok
+    * better names for usage and stuff          ok
+    * --help=define-style usage

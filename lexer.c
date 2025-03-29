@@ -20,20 +20,16 @@ static unsigned int *Base25;
  */
 static const char *const WhyError[] = {
     "reference is outta bounds, check table's size",
-    "token is not defined, see ez-sp --help=tokens",
+    "token is not defined.",
     "cell has reached its limit of tokens",
     "syntax error",
 };
 
 enum error_kind
 {
-    /* Referece token is outta table's bounds */
     error_is_due_to_bounds = 0,
-    /* Unknonwn token to the program */
     error_is_due_to_unknown,
-    /* cell cannot longer store more tokens */
     error_is_due_to_cell_is_fuil,
-    /* bad definition, mostly for references... */
     error_is_due_to_syntax_error
 };
 
@@ -155,10 +151,12 @@ void lexer_init (struct program *_p, const size_t bytes)
                 break;
             
             default:
+                error_inform(token, error_is_due_to_unknown);
                 break;
         }
         token_found(cell, &token);
     }
+    free(Base25);
 }
 
 static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const char sep)
@@ -199,9 +197,7 @@ static void gen_base_25 (const unsigned int columns)
 static void token_found (struct cell *cell, struct token *token)
 {
     if (cell->streamsz == __macro_tokens_per_cell) error_inform(*token, error_is_due_to_cell_is_fuil);
-
-    printf("token found: <%c> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
-    token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+     printf("token found: <%c> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n", token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 
@@ -289,7 +285,7 @@ static void error_inform (const struct token token, const enum error_kind error)
 
     unsigned int context = 0;
 
-    while (token.info.definition[context] != '\n') context++;
+    while (!isspace(token.info.definition[context])) context++;
     fprintf(stderr, "  %-5.d  %.*s\n         ", token.info.numline, context, token.info.definition);
 
     for (unsigned int i = 1; i <= token.info.length; i++) fputc('~', stderr);

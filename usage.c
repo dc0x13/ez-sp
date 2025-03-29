@@ -52,9 +52,9 @@ void usage_usage (const char *with)
         printf("  Allows specifying a custom style for the output.\n");
         printf("  By default, no style is used.\n");
         printf("  Example: ez-sp --style my-style\n");
-        printf("  Run ez-sp --help=estilo to know more.\n");
+        printf("  Run ez-sp --help=styles to know more.\n");
     }
-    else if (!strncmp(with, "estilo", 6))        { know_more_styles(); }
+    else if (!strncmp(with, "styles", 6))        { know_more_styles(); }
     else if (!strncmp(with, "formats", 7))       { know_more_formats(); }
     else if (!strncmp(with, "define-style", 12)) { know_more_define_style(); }
     else { usage_usage(NULL); }
