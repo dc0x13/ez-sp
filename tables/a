@@ -1,11 +1,7 @@
-=           ,
- +          ,
-  /         ,
-   *        ,
-  (         ,
- )          ,
-?           ,
-;           ,
-^           ,
-5434        ,  34543??? ,
-"hola"???   , -343.4    ,
+"This is a table"       |   3.141592    |
+"this is just a test"   |   2.7182      |
+"there are more tokens" |       T       |
+"that this"             |       F       |
+"it just that they"     |       F       |
+"should be used within" |       F       |
+"an expression ;)"      |       T       |

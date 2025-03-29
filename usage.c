@@ -56,7 +56,7 @@ void usage_usage (const char *with)
     }
     else if (!strncmp(with, "debug", 5))
     {
-        printf("Usage of -s or --debug:\n");
+        printf("Usage of -d or --debug:\n");
         printf("  Allows user to see what tokens were found.\n");
         printf("  By default, no debug info is shown.\n");
     }

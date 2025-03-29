@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include "argxs.h"
 #include "usage.h"
+#include "parser.h"
 
 #include <stdlib.h>
 
@@ -18,6 +19,7 @@ int main (int argc, char **argv)
     const size_t bytes = read_file_content(p.args.doc, &p.docstr);
 
     lexer_init(&p, bytes);
+    parser_init(&p);
     return 0;
 }
 

@@ -5,6 +5,11 @@
 
 #define macro_get_row_number(numberline)   (numberline - 1)
 #define macro_phase                        "lexer"
+#define macro_valid_first_token(kind)      ((kind == token_is_string)    || (kind == token_is_number)        ||  \
+                                            (kind == token_is_true_bool) || (kind == token_is_false_bool)    ||  \
+                                            (kind == token_is_const_ref) || (kind == token_is_varia_ref)     ||  \
+                                            (kind == token_is_expr_init) || (kind == token_is_conditional)   ||  \
+                                            (kind == token_is_clone_up))
 
 /* To parse column names the Base25 is used
  * in the following way:
@@ -23,6 +28,7 @@ static const char *const WhyError[] = {
     "token is not defined.",
     "cell has reached its limit of tokens",
     "syntax error",
+    "invalid first token, make sure each cell builds an expression"
 };
 
 static char ShowTokensFound = __macro_dont_show_debug_info;
@@ -32,7 +38,8 @@ enum error_kind
     error_is_due_to_bounds = 0,
     error_is_due_to_unknown,
     error_is_due_to_cell_is_fuil,
-    error_is_due_to_syntax_error
+    error_is_due_to_syntax_error,
+    error_is_due_to_invalid_first_token
 };
 
 struct lexer_info
@@ -200,12 +207,18 @@ static void gen_base_25 (const unsigned int columns)
 
 static void token_found (struct cell *cell, struct token *token)
 {
-    if (cell->streamsz == __macro_tokens_per_cell) error_inform(*token, error_is_due_to_cell_is_fuil);
+    if (cell->streamsz == __macro_tokens_per_cell)
+    { error_inform(*token, error_is_due_to_cell_is_fuil); }
+
     if (ShowTokensFound)
     {
         printf("token found: <%d> \t\t (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
         token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
     }
+
+    if (cell->streamsz == 0 && !macro_valid_first_token(token->kind))
+    { error_inform(*token, error_is_due_to_invalid_first_token); }
+
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 
@@ -288,7 +301,7 @@ static size_t extract_number_from_source (const char *source, long double *numbe
 
 static void error_inform (const struct token token, const enum error_kind error)
 {
-    fprintf(stderr, "\nez-sp: fatal error while lexing\n");
+    fprintf(stderr, "ez-sp: fatal error while lexing\n");
     fprintf(stderr, "token is located at %dth row and %dth column\n", macro_get_row_number(token.info.numline), token.info.column);
 
     unsigned int context = 0;
@@ -298,6 +311,6 @@ static void error_inform (const struct token token, const enum error_kind error)
 
     for (unsigned int i = 1; i <= token.info.length; i++) fputc('~', stderr);
 
-    fprintf(stderr, "\nreason: %s\n\n", WhyError[error]);
+    fprintf(stderr, "\nreason: %s\n", WhyError[error]);
     exit(EXIT_FAILURE);
 }

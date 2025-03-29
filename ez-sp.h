@@ -17,6 +17,9 @@
 #define __macro_dont_show_debug_info    0
 #define __macro_show_debug_info         1
 
+#define __macro_true_value              1
+#define __macro_false_value             0
+
 enum token_kind
 {
     token_is_string      = '"',
@@ -45,10 +48,12 @@ struct cell;
 
 enum cell_kind
 {
-    cell_is_not_defined  = 0,
-    cell_is_number_const = 1,
-    cell_is_string_const = 2,
-    cell_is_error        = 3
+    cell_is_empty        = 0,
+    cell_is_number_const,
+    cell_is_string_const,
+    cell_is_true_const,
+    cell_is_false_const,
+    cell_is_error,
 };
 
 struct token
@@ -74,6 +79,12 @@ struct token
 struct cell
 {
     struct token   stream[__macro_tokens_per_cell];
+    union 
+    {
+        struct      { char *text; unsigned int length; } text;
+        long double number;
+        char        boolean;
+    } as;
     unsigned int   streamsz;
     enum cell_kind kind;
 };
