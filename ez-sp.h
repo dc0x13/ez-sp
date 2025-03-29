@@ -13,6 +13,10 @@
 #define __macro_check_ptr(ptr, proc)    do { if (ptr) break; err(-1, "ez-sp:fatal:%s", proc); } while (0)
 #define __macro_mark_todo(ToDo)         do { printf("todo:%s:%d: %s\n", __FILE__, __LINE__, ToDo); } while (0)
 
+/* Possible values for '-d' flag */
+#define __macro_dont_show_debug_info    0
+#define __macro_show_debug_info         1
+
 enum token_kind
 {
     token_is_string      = '"',
@@ -90,6 +94,7 @@ struct program
         char  *out;
         char  *style;
         char  sep;
+        char  debug_info;
     } args;
     struct table  table;
     char          *docstr;

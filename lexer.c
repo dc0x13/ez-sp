@@ -25,6 +25,8 @@ static const char *const WhyError[] = {
     "syntax error",
 };
 
+static char ShowTokensFound = __macro_dont_show_debug_info;
+
 enum error_kind
 {
     error_is_due_to_bounds = 0,
@@ -54,6 +56,8 @@ static void error_inform (const struct token, const enum error_kind);
 
 void lexer_init (struct program *_p, const size_t bytes)
 {
+    ShowTokensFound = _p->args.debug_info;
+
     get_table_size(_p->docstr, &_p->table.rows, &_p->table.cols, _p->args.sep);
     gen_base_25(_p->table.cols);
 
@@ -124,7 +128,7 @@ void lexer_init (struct program *_p, const size_t bytes)
                 break;
 
             case token_is_sub_sign:
-                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) number_literal_found(&info.offsetline, &token);
+                if ((i + 1 < bytes) && isdigit(_p->docstr[i + 1])) i += number_literal_found(&info.offsetline, &token);
                 else                                               token.kind = token_is_sub_sign;
                 break;
 
@@ -197,7 +201,11 @@ static void gen_base_25 (const unsigned int columns)
 static void token_found (struct cell *cell, struct token *token)
 {
     if (cell->streamsz == __macro_tokens_per_cell) error_inform(*token, error_is_due_to_cell_is_fuil);
-     printf("token found: <%c> (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n", token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+    if (ShowTokensFound)
+    {
+        printf("token found: <%d> \t\t (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
+        token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+    }
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
 

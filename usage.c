@@ -54,6 +54,12 @@ void usage_usage (const char *with)
         printf("  Example: ez-sp --style my-style\n");
         printf("  Run ez-sp --help=styles to know more.\n");
     }
+    else if (!strncmp(with, "debug", 5))
+    {
+        printf("Usage of -s or --debug:\n");
+        printf("  Allows user to see what tokens were found.\n");
+        printf("  By default, no debug info is shown.\n");
+    }
     else if (!strncmp(with, "styles", 6))        { know_more_styles(); }
     else if (!strncmp(with, "formats", 7))       { know_more_formats(); }
     else if (!strncmp(with, "define-style", 12)) { know_more_define_style(); }

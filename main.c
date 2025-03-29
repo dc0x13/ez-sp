@@ -30,6 +30,7 @@ static void parse_arguments (const unsigned int argc, char **argv, struct progra
         {"out",   'O', ARGXS_ARG_MAY},
         {"help",  'h', ARGXS_ARG_MAY},
         {"style", 's', ARGXS_ARG_MAY},
+        {"debug", 'd', ARGXS_ARG_NON},
         ARGXS_FINAL_FLAG
     };
 
@@ -46,6 +47,7 @@ static void parse_arguments (const unsigned int argc, char **argv, struct progra
             case 'F': doc->args.fmt   = this->argument;  break;
             case 'O': doc->args.out   = this->argument;  break;
             case 's': doc->args.style = this->argument;  break;
+            case 'd': doc->args.debug_info = __macro_show_debug_info; break;
             case 'h': usage_usage(this->argument); break;
         }
     }
