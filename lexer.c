@@ -20,6 +20,10 @@
  */
 static unsigned int *Base25;
 
+/* Brought to life: debug flag
+ */
+static char ShowTokensFound = __macro_dont_show_debug_info;
+
 /* Reason why the lexer failed at any possible
  * stage
  */
@@ -28,18 +32,8 @@ static const char *const WhyError[] = {
     "token is not defined.",
     "cell has reached its limit of tokens",
     "syntax error",
-    "invalid first token, make sure each cell builds an expression"
-};
-
-static char ShowTokensFound = __macro_dont_show_debug_info;
-
-enum error_kind
-{
-    error_is_due_to_bounds = 0,
-    error_is_due_to_unknown,
-    error_is_due_to_cell_is_fuil,
-    error_is_due_to_syntax_error,
-    error_is_due_to_invalid_first_token
+    "invalid first token, make sure each cell builds an expression",
+    "cannot make a reference to a cell which has not been parsed"
 };
 
 struct lexer_info
@@ -59,7 +53,6 @@ static size_t string_literal_found (unsigned int*, struct token*);
 static size_t referece_literal_found (unsigned int*, struct token*, const unsigned int, const unsigned int, const char);
 
 static size_t extract_number_from_source (const char*, long double*);
-static void error_inform (const struct token, const enum error_kind);
 
 void lexer_init (struct program *_p, const size_t bytes)
 {
@@ -159,15 +152,34 @@ void lexer_init (struct program *_p, const size_t bytes)
             case token_is_const_ref:
             case token_is_varia_ref:
                 i += referece_literal_found(&info.offsetline, &token, _p->table.rows, _p->table.cols, chr);
+                token.as.ref.ptr = &_p->table.grid[token.as.ref.row * _p->table.cols + token.as.ref.col];
                 break;
             
             default:
-                error_inform(token, error_is_due_to_unknown);
+                lexer_highlight_error_within_source(token, src_err_is_due_to_unknown);
                 break;
         }
         token_found(cell, &token);
     }
     free(Base25);
+}
+
+/* This function is also used in parser; it is used to highlight the error found.
+ */
+void lexer_highlight_error_within_source (const struct token token, const enum source_error_kind error)
+{
+    fprintf(stderr, "ez-sp: fatal error while lexing\n");
+    fprintf(stderr, "token is located at %dth row and %dth column\n", macro_get_row_number(token.info.numline), token.info.column);
+
+    unsigned int context = 0;
+
+    while (!isspace(token.info.definition[context])) context++;
+    fprintf(stderr, "  %-5.d  %.*s\n         ", token.info.numline, context, token.info.definition);
+
+    for (unsigned int i = 1; i <= token.info.length; i++) fputc('~', stderr);
+
+    fprintf(stderr, "\nreason: %s\n", WhyError[error]);
+    exit(EXIT_FAILURE);
 }
 
 static void get_table_size (char *src, unsigned int *rows, unsigned *cols, const char sep)
@@ -208,7 +220,7 @@ static void gen_base_25 (const unsigned int columns)
 static void token_found (struct cell *cell, struct token *token)
 {
     if (cell->streamsz == __macro_tokens_per_cell)
-    { error_inform(*token, error_is_due_to_cell_is_fuil); }
+    { lexer_highlight_error_within_source(*token, src_err_is_due_to_cell_is_fuil); }
 
     if (ShowTokensFound)
     {
@@ -217,7 +229,7 @@ static void token_found (struct cell *cell, struct token *token)
     }
 
     if (cell->streamsz == 0 && !macro_valid_first_token(token->kind))
-    { error_inform(*token, error_is_due_to_invalid_first_token); }
+    { lexer_highlight_error_within_source(*token, src_err_is_due_to_invalid_first_token); }
 
     memcpy(&cell->stream[cell->streamsz++], token, sizeof(*token));
 }
@@ -250,14 +262,14 @@ static size_t string_literal_found (unsigned int *offset, struct token *token)
 
 static size_t referece_literal_found (unsigned int *offset, struct token *token, const unsigned int nrows, const unsigned int ncols, const char kind)
 {
-    enum error_kind paila;
+    enum source_error_kind paila;
     char *src = token->info.definition + 1;
 
     while (isalpha(src[token->info.length]))
     { token->info.length++; }
 
     if (token->info.length == 0)
-    { paila = error_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
+    { paila = src_err_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
 
     unsigned int column = 0;
     long double row__ = 0;
@@ -267,15 +279,15 @@ static size_t referece_literal_found (unsigned int *offset, struct token *token,
     
     src += token->info.length;
     if (!isdigit(*src))
-    { paila = error_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
+    { paila = src_err_is_due_to_syntax_error; goto la_madre_que_lo_pario; }
 
     token->info.length += (unsigned int) extract_number_from_source(src, &row__);
     unsigned int row = (unsigned int) row__;
 
-    if (row >= nrows || --column >= ncols)
-    { paila = error_is_due_to_bounds; goto la_madre_que_lo_pario; }
+    if (row >= nrows || --column > ncols)
+    { paila = src_err_is_due_to_bounds; goto la_madre_que_lo_pario; }
 
-    token->as.ref.row = row;
+    token->as.ref.row = ++row;
     token->as.ref.col = column;
     token->kind = (kind == '@') ? token_is_varia_ref : token_is_const_ref;
 
@@ -287,7 +299,7 @@ la_madre_que_lo_pario:
      * we need to include it to mark the whole token as error
      */
     token->info.length++;
-    error_inform(*token, paila);
+    lexer_highlight_error_within_source(*token, paila);
 
     return 0;
 }
@@ -297,20 +309,4 @@ static size_t extract_number_from_source (const char *source, long double *numbe
     char *ends;
     *number = strtold(source, &ends);
     return (size_t) (ends - source);
-}
-
-static void error_inform (const struct token token, const enum error_kind error)
-{
-    fprintf(stderr, "ez-sp: fatal error while lexing\n");
-    fprintf(stderr, "token is located at %dth row and %dth column\n", macro_get_row_number(token.info.numline), token.info.column);
-
-    unsigned int context = 0;
-
-    while (!isspace(token.info.definition[context])) context++;
-    fprintf(stderr, "  %-5.d  %.*s\n         ", token.info.numline, context, token.info.definition);
-
-    for (unsigned int i = 1; i <= token.info.length; i++) fputc('~', stderr);
-
-    fprintf(stderr, "\nreason: %s\n", WhyError[error]);
-    exit(EXIT_FAILURE);
 }

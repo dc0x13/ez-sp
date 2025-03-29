@@ -1,6 +1,10 @@
 #include "parser.h"
+#include "lexer.h"
+
+#include <stdlib.h>
 
 static void transfer_constant_value_to_cell (struct cell*, struct token*);
+static void transfer_cell_to_cell (struct cell*, struct token*);
 
 void parser_init (struct program *_p)
 {
@@ -25,6 +29,14 @@ void parser_init (struct program *_p)
                 break;
             
             case token_is_expr_init:
+                break;
+            
+            /* The concept of `variable` and `constant` are only useful while
+             * cloning
+             */
+            case token_is_const_ref:
+            case token_is_varia_ref:
+                transfer_cell_to_cell(cell, &cell->stream[0]);
                 break;
         }
     }
@@ -53,4 +65,14 @@ static void transfer_constant_value_to_cell (struct cell *cell, struct token *to
         cell->as.boolean = __macro_false_value;
         cell->kind = cell_is_true_const;
     }
+}
+
+static void transfer_cell_to_cell (struct cell *cell, struct token *token)
+{
+    struct cell *refers2 = token->as.ref.ptr;
+
+    if (cell <= refers2)
+    { lexer_highlight_error_within_source(*token, src_err_is_due_to_far_reference); }
+
+    puts("ok!");
 }
