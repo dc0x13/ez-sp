@@ -1,3 +1,11 @@
+/*                 __
+ *                / _)
+ *       _.----._/ /    dc0x13
+ *      /         /     part of `ez-sp` project.
+ *   __/ (  | (  |      Mar 22 2025
+ *  /__.-'|_|--|_|
+ */
+
 #ifndef EZ_SP_H
 #define EZ_SP_H
 
@@ -11,7 +19,6 @@
 #define __macro_tokens_per_cell         32
 
 #define __macro_check_ptr(ptr, proc)    do { if (ptr) break; err(-1, "ez-sp:fatal:%s", proc); } while (0)
-#define __macro_mark_todo(ToDo)         do { printf("todo:%s:%d: %s\n", __FILE__, __LINE__, ToDo); } while (0)
 
 #define __macro_dont_show_debug_info    0
 #define __macro_show_debug_info         1

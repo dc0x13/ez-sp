@@ -1,3 +1,11 @@
+/*                 __
+ *                / _)
+ *       _.----._/ /    dc0x13
+ *      /         /     part of `ez-sp` project.
+ *   __/ (  | (  |      Mar 22 2025
+ *  /__.-'|_|--|_|
+ */
+
 #ifndef ARGXS_ARGXS_H
 #define ARGXS_ARGXS_H
 

@@ -1,3 +1,10 @@
+#                 __
+#                / _)
+#       _.----._/ /    dc0x13
+#      /         /     part of `ez-sp` project.
+#   __/ (  | (  |      Mar 22 2025
+#  /__.-'|_|--|_|
+
 objs  = main.o lexer.o usage.o parser.o argxs.o
 optz  = -O0
 std   = -std=c99

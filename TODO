@@ -1,9 +1,13 @@
 
-    * Parse single tokens                       ok
-    * Parse numbers                             ok
-    * Parse strings                             ok
-    * Parse references                          ok
-    * Handle seg faults in a gracefully way     ok
+    * parse single tokens                       ok
+    * parse literals                            ok
+    * handle seg faults gracefully              ok
+    * lexer                                     ok
     * stress lexer                              ok
-    * better names for usage and stuff          ok
-    * --help=define-style usage
+    * transfer constant values to cells         ok
+    * implement copy cells copying              ok
+    * solve arithmetical expressions
+    * solve simple conditionals
+    * --help=define-style message
+    * implement output formats
+
