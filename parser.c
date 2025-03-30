@@ -2,6 +2,7 @@
 #include "lexer.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 static void transfer_constant_value_to_cell (struct cell*, struct token*);
 static void transfer_cell_to_cell (struct cell*, struct token*);
@@ -21,22 +22,18 @@ void parser_init (struct program *_p)
             case token_is_false_bool:
                 transfer_constant_value_to_cell(cell, &cell->stream[0]);
                 break;
-            
-            case token_is_conditional:
-                break;
-            
-            case token_is_clone_up:
-                break;
-            
-            case token_is_expr_init:
-                break;
-            
             /* The concept of `variable` and `constant` are only useful while
              * cloning
              */
             case token_is_const_ref:
             case token_is_varia_ref:
                 transfer_cell_to_cell(cell, &cell->stream[0]);
+                break;
+            case token_is_conditional:
+                break;
+            case token_is_clone_up:
+                break;
+            case token_is_expr_init:
                 break;
         }
     }
@@ -73,6 +70,5 @@ static void transfer_cell_to_cell (struct cell *cell, struct token *token)
 
     if (cell <= refers2)
     { lexer_highlight_error_within_source(*token, src_err_is_due_to_far_reference); }
-
-    puts("ok!");
+    memcpy(cell, refers2, sizeof(*cell));
 }

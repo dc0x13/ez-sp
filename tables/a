@@ -2,6 +2,6 @@
 "this is just a test"   |   2.7182      |
 "there are more tokens" |       T       |
 "than this"             |       F       |
-"it just that they"     |      @b4      |
+"it just that they"     |      @b3      |
 "should be used within" |       F       |
 "an expression ;)"      |       T       |
