@@ -44,11 +44,11 @@ static void parse_arguments (const unsigned int argc, char **argv, struct progra
         const struct argxs_found *this = &res->found[i];
         switch (this->flag->id)
         {
-            case 'D': doc->args.doc   = this->argument;  break;
-            case 'S': doc->args.sep   = *this->argument; break;
-            case 'F': doc->args.fmt   = this->argument;  break;
-            case 'O': doc->args.out   = this->argument;  break;
-            case 's': doc->args.style = this->argument;  break;
+            case 'D': doc->args.doc        = this->argument;  break;
+            case 'S': doc->args.sep        = *this->argument; break;
+            case 'F': doc->args.fmt        = this->argument;  break;
+            case 'O': doc->args.out        = this->argument;  break;
+            case 's': doc->args.style      = this->argument;  break;
             case 'd': doc->args.debug_info = __macro_show_debug_info; break;
             case 'h': usage_usage(this->argument); break;
         }

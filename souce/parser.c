@@ -7,6 +7,8 @@
 static void transfer_constant_value_to_cell (struct cell*, struct token*);
 static void transfer_cell_to_cell (struct cell*, struct token*);
 
+static void expression_solver (struct cell*);
+
 void parser_init (struct program *_p)
 {
     for (unsigned int C = 0; C < _p->table.rows * _p->table.cols; C++)
@@ -29,11 +31,12 @@ void parser_init (struct program *_p)
             case token_is_varia_ref:
                 transfer_cell_to_cell(cell, &cell->stream[0]);
                 break;
+            case token_is_expr_init:
+                expression_solver(cell);
+                break;
             case token_is_conditional:
                 break;
             case token_is_clone_up:
-                break;
-            case token_is_expr_init:
                 break;
         }
     }
@@ -48,7 +51,7 @@ static void transfer_constant_value_to_cell (struct cell *cell, struct token *to
     }
     else if (token->kind == token_is_string)
     {
-        cell->as.text.text   = token->info.definition + 1;
+        cell->as.text.text = token->info.definition + 1;
         cell->as.text.length = token->info.length - 2;
         cell->kind = cell_is_string_const;
     }

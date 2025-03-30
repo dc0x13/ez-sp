@@ -20,10 +20,6 @@
  */
 static unsigned int *Base25;
 
-/* Brought to life: debug flag
- */
-static char ShowTokensFound = __macro_dont_show_debug_info;
-
 /* Reason why the lexer failed at any possible
  * stage
  */
@@ -35,6 +31,8 @@ static const char *const WhyError[] = {
     "invalid first token, make sure each cell builds an expression",
     "cannot make a reference to a cell which has not been parsed"
 };
+
+static char ShowTokensFound = __macro_dont_show_debug_info;
 
 struct lexer_info
 {
