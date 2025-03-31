@@ -61,13 +61,15 @@ long double expression_execute (struct cell *cell)
     for (unsigned int i = 0; i < shnsz; i++)
     {
         if (shunt[i]->kind == token_is_number)
-        { numstack[length++] = shunt[i]->as.number; continue; }
+        { printf("%Lf ", shunt[i]->as.number); numstack[length++] = shunt[i]->as.number; continue; }
 
         if (length <= 1)
         { lexer_highlight_error_within_source(cell->stream[0], src_err_is_due_to_malformed_expression); }
 
         long double lhs = numstack[length - 2], rhs = numstack[length - 1], new = 0;
         length -= 2;
+
+        printf("%c ", shunt[i]->kind);
 
         switch (shunt[i]->kind)
         {
@@ -79,6 +81,8 @@ long double expression_execute (struct cell *cell)
 
         numstack[length++] = new;
     }
+
+    printf("\n");
 
     return numstack[0];
 }
@@ -104,8 +108,23 @@ static void push_into_oprts (struct token **oprts, struct token **shunt, struct 
     {
         if (NoParentheses == 0)
         { lexer_highlight_error_within_source(*token, src_err_is_due_to_unbalanced_parentheses); }
+
+        // (3 + 2) * 5
+        // 3 2
+        // ( +
+
+        while (1)
+        {
+            *optsz -= 1;
+            struct token *top = oprts[*optsz];
+            if (top->kind == token_is_lhs_par) break;
+            push_into_shunting(shunt, top, shsz);
+        }
+
+        NoParentheses--;
         return;
     }
+
     while (*optsz > 0)
     {
         struct token *top = oprts[*optsz - 1];
@@ -126,6 +145,7 @@ static void push_into_oprts (struct token **oprts, struct token **shunt, struct 
 
     push_anyway:
     {
+        if (token->kind == token_is_lhs_par) NoParentheses++;
         oprts[*optsz] = token;
         *optsz += 1;
     }
@@ -133,6 +153,8 @@ static void push_into_oprts (struct token **oprts, struct token **shunt, struct 
 
 static unsigned char should_swap (const enum token_kind top, const enum token_kind ths)
 {
+    if (top == token_is_lhs_par) return macro_dont_swap;
+
     static const unsigned short same[] =
     {
         token_is_sub_sign * token_is_add_sign,
@@ -152,15 +174,18 @@ int main ()
     struct cell cell =
     {
         .stream = {
-            { .kind = token_is_expr_init },
+            { .kind = token_is_expr_init               },
+            { .kind = token_is_lhs_par,                },
             { .kind = token_is_number,  .as.number = 3 },
-            { .kind = token_is_mul_sign,.as.number = 0 },
-            { .kind = token_is_number,  .as.number = 8 },
-            { .kind = token_is_sub_sign,.as.number = 0 },
+            { .kind = token_is_add_sign,.as.number = 0 },
             { .kind = token_is_number,  .as.number = 2 },
+            { .kind = token_is_rhs_par,                },
+            { .kind = token_is_mul_sign,.as.number = 0 },
+            { .kind = token_is_number,  .as.number = 5 },
         },
-        .streamsz = 6
+        .streamsz = 8
     };
+    // (3 + 2) * 5
 
     long double a = expression_execute(&cell);
     printf("%Lf\n", a);
