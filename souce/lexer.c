@@ -37,7 +37,10 @@ static const char *const WhyError[] = {
     "cell has reached its limit of tokens",
     "syntax error",
     "invalid first token, make sure each cell builds an expression",
-    "cannot make a reference to a cell which has not been parsed"
+    "cannot make a reference to a cell which has not been parsed",
+
+    "token doesn't make any sense here, you fr?",
+    "token generates formula overflow, go and use excel then ;(",
 };
 
 static char ShowTokensFound = __macro_dont_show_debug_info;
@@ -170,8 +173,6 @@ void lexer_init (struct program *_p, const size_t bytes)
     free(Base25);
 }
 
-/* This function is also used in parser; it is used to highlight the error found.
- */
 void lexer_highlight_error_within_source (const struct token token, const enum source_error_kind error)
 {
     fprintf(stderr, "ez-sp: fatal error while lexing\n");

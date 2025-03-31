@@ -18,7 +18,9 @@ enum source_error_kind
     src_err_is_due_to_cell_is_fuil,
     src_err_is_due_to_syntax_error,
     src_err_is_due_to_invalid_first_token,
-    src_err_is_due_to_far_reference
+    src_err_is_due_to_far_reference,
+    src_err_is_due_to_invalid_token_within_formula,
+    src_err_is_due_to_formula_overflow,
 };
 
 void lexer_init (struct program*, const size_t);

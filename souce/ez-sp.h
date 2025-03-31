@@ -77,7 +77,6 @@ struct token
         char        *text;
         long double number;
         struct      { unsigned row, col; struct cell *ptr; } ref;
-        
     } as;
     enum token_kind kind;
 };
