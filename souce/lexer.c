@@ -41,6 +41,8 @@ static const char *const WhyError[] = {
 
     "token doesn't make any sense here, you fr?",
     "token generates formula overflow, go and use excel then ;(",
+    "unbalanced number of parentheses within expression",
+    "malformed expression"
 };
 
 static char ShowTokensFound = __macro_dont_show_debug_info;

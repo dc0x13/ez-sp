@@ -21,6 +21,8 @@ enum source_error_kind
     src_err_is_due_to_far_reference,
     src_err_is_due_to_invalid_token_within_formula,
     src_err_is_due_to_formula_overflow,
+    src_err_is_due_to_unbalanced_parentheses,
+    src_err_is_due_to_malformed_expression,
 };
 
 void lexer_init (struct program*, const size_t);
