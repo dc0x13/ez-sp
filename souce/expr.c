@@ -82,7 +82,7 @@ long double expression_execute (struct cell *cell)
         numstack[length++] = new;
     }
 
-    printf("\nfrom expr, ans is: %Lf\n", numstack[0]);
+    printf("\nfrom expr, ans is: %Lf\n~~~~~~~~~~~~~~~~~~~\n", numstack[0]);
     return numstack[0];
 }
 
@@ -162,28 +162,3 @@ static unsigned char should_swap (const enum token_kind top, const enum token_ki
 
     return macro_dont_swap;
 }
-
-
-/*
-int main ()
-{
-    struct cell cell =
-    {
-        .stream = {
-            { .kind = token_is_expr_init               },
-            { .kind = token_is_lhs_par,                },
-            { .kind = token_is_number,  .as.number = 3 },
-            { .kind = token_is_add_sign,.as.number = 0 },
-            { .kind = token_is_number,  .as.number = 2 },
-            { .kind = token_is_rhs_par,                },
-            { .kind = token_is_mul_sign,.as.number = 0 },
-            { .kind = token_is_number,  .as.number = 5 },
-        },
-        .streamsz = 8
-    };
-
-    long double a = expression_execute(&cell);
-    printf("%Lf\n", a);
-    return 0;
-}
-*/

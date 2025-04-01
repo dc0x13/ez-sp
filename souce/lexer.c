@@ -296,7 +296,7 @@ static size_t referece_literal_found (unsigned int *offset, struct token *token,
     if (row >= nrows || --column > ncols)
     { paila = src_err_is_due_to_bounds; goto la_madre_que_lo_pario; }
 
-    token->as.ref.row = ++row;
+    token->as.ref.row = row;
     token->as.ref.col = column;
     token->kind = (kind == '@') ? token_is_varia_ref : token_is_const_ref;
 
