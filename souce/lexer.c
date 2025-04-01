@@ -95,7 +95,7 @@ void lexer_init (struct program *_p, const size_t bytes)
         {
             if (chr == '\n' && info.numberline < _p->table.rows)
             {
-                cell = &_p->table.grid[(++info.numberline) * _p->table.cols];
+                cell = &_p->table.grid[info.numberline++ * _p->table.cols];
                 info.offsetline = 0;
                 info.column = 0;
             }
@@ -233,8 +233,8 @@ static void token_found (struct cell *cell, struct token *token)
 
     if (ShowTokensFound)
     {
-        printf("token found: <%d> \t\t (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
-        token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
+        printf("token found: <%d => %c> \t\t (lemgth: %d) (numline: %d) (offset: %d) (row: %d) (column: %d)\n",
+        token->kind, token->kind, token->info.length, token->info.numline, token->info.offset, token->info.numline - 1, token->info.column);
     }
 
     if (cell->streamsz == 0 && !macro_valid_first_token(token->kind))

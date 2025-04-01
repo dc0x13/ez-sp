@@ -124,36 +124,48 @@ static size_t read_file_content (const char *filename, char **src)
 
 static void process_table (struct program *_p)
 {
-    for (unsigned int c = 0; c < _p->table.rows * _p->table.cols; c++)
+    const unsigned int total = _p->table.rows * _p->table.cols;
+    printf("TOTAL: %d\n", total);
+
+    for (unsigned int c = 0; c < total; c++)
     {
         struct cell *cell = &_p->table.grid[c];
-        if (cell->streamsz == 0) continue;
-
+        //if (cell->streamsz == 0) continue;
         struct token *T = &cell->stream[0];
 
-        switch (T->kind)
+        printf("% 4dth HEAD: %c %d\n", c, T->kind, T->kind);
+        continue;
+
+        /*switch (T->kind)
         {
             case token_is_string     : set_literal_number_to_cell(cell, T->as.number); break;
             case token_is_number     : set_literal_string_to_cell(cell, T->info.definition, T->info.length - 2); break;
+
             case token_is_true_bool  :
             case token_is_false_bool : set_literal_boolean_to_cell(cell, (char) (T->kind == token_is_true_bool)); break;
+
             case token_is_const_ref  :
             case token_is_varia_ref  : set_cell_as_another_cell(cell, T); break;
+
             case token_is_expr_init  : expression_execute(cell); break;
+
             case token_is_conditional: break;
+
             case token_is_clone_up   : break;
-        }
+        }*/
     }
 }
 
 static void set_literal_number_to_cell (struct cell *cell, const long double number)
 {
+    puts("number literal assigned");
     cell->as.number = number;
     cell->kind = cell_is_number_const;
 }
 
 static void set_literal_string_to_cell (struct cell *cell, const char *text, const unsigned int length)
 {
+    puts("string literal assigned");
     cell->as.text.text = (char*) text;
     cell->as.text.length = length;
     cell->kind = cell_is_string_const;
@@ -161,6 +173,7 @@ static void set_literal_string_to_cell (struct cell *cell, const char *text, con
 
 static void set_literal_boolean_to_cell (struct cell *cell, const char boolean)
 {
+    puts("boolean literal assigned");
     cell->as.boolean = boolean;
     cell->kind = (boolean == __macro_true_value) ? cell_is_true_const : cell_is_false_const;
 }
@@ -172,4 +185,5 @@ static void set_cell_as_another_cell (struct cell *cell, struct token *token)
     if (cell <= pts)
     { lexer_highlight_error_within_source(*token, src_err_is_due_to_far_reference); }
     memcpy(cell, pts, sizeof(*cell));
+    puts("reference literal performed");
 }

@@ -82,8 +82,7 @@ long double expression_execute (struct cell *cell)
         numstack[length++] = new;
     }
 
-    printf("\n");
-
+    printf("\nfrom expr, ans is: %Lf\n", numstack[0]);
     return numstack[0];
 }
 
@@ -108,10 +107,6 @@ static void push_into_oprts (struct token **oprts, struct token **shunt, struct 
     {
         if (NoParentheses == 0)
         { lexer_highlight_error_within_source(*token, src_err_is_due_to_unbalanced_parentheses); }
-
-        // (3 + 2) * 5
-        // 3 2
-        // ( +
 
         while (1)
         {
@@ -169,6 +164,7 @@ static unsigned char should_swap (const enum token_kind top, const enum token_ki
 }
 
 
+/*
 int main ()
 {
     struct cell cell =
@@ -185,10 +181,9 @@ int main ()
         },
         .streamsz = 8
     };
-    // (3 + 2) * 5
 
     long double a = expression_execute(&cell);
     printf("%Lf\n", a);
     return 0;
 }
-
+*/
