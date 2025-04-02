@@ -1,11 +1,3 @@
-/*                 __
- *                / _)
- *       _.----._/ /    dc0x13
- *      /         /     part of `ez-sp` project.
- *   __/ (  | (  |      Mar 22 2025
- *  /__.-'|_|--|_|
- */
-
 #include "argxs.h"
 
 #include <stdlib.h>
@@ -220,3 +212,4 @@ static enum argxs_fatal handle_shrt_flag (const char id, const struct argxs_flag
     _flag->argument = NULL;
     return argxs_fatal_none;
 }
+

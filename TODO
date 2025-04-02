@@ -1,13 +1,3 @@
 
-    * parse single tokens                       ok
-    * parse literals                            ok
-    * handle seg faults gracefully              ok
-    * lexer                                     ok
-    * stress lexer                              ok
-    * transfer constant values to cells         ok
-    * implement copy cells copying              ok
-    * solve arithmetical expressions
-    * solve simple conditionals
-    * --help=define-style message
-    * implement output formats
+    1. Specify program's usage
 

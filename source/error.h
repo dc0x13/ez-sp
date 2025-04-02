@@ -2,15 +2,10 @@
  *                / _)
  *       _.----._/ /    dc0x13
  *      /         /     part of `ez-sp` project.
- *   __/ (  | (  |      Mar 22 2025
+ *   __/ (  | (  |      Apr 01 2025
  *  /__.-'|_|--|_|
  */
-
-#ifndef EZ_SP_EXPR_H
-#define EZ_SP_EXPR_H
-
-#include "ez-sp.h"
-
-long double expression_execute (struct cell*);
+#ifndef EZ_SP_ERROR_H
+#define EZ_SP_ERROR_H
 
 #endif
