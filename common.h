@@ -10,7 +10,8 @@
 
 #include <stdio.h>
 
-#define common_macro_max_no_sheets  10
+#define common_macro_max_no_sheets      10
+#define common_macro_init_error_msg(s)  fprintf(stderr, "\nez-sp: simple spread sheet presents an error at '%s' stage:\n\n", s)
 
 #define uint8_t     unsigned char
 #define uint16_t    unsigned short

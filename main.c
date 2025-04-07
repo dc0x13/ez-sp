@@ -34,7 +34,7 @@ static void recive_execution_args (char **argv, struct Program *program, const u
 
     if (res->fatal != argxs_fatal_none)
     {
-        usage_bad_usage(res);
+        usage_bad_usage(argv, res);
     }
 
     for (uint32_t i = 0; i < res->no_found; i++)
