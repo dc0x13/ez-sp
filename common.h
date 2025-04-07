@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 #define common_macro_max_no_sheets      10
-#define common_macro_init_error_msg(s)  fprintf(stderr, "\nez-sp: simple spread sheet presents an error at '%s' stage:\n\n", s)
+#define common_macro_init_error_msg(s)  fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;31merror\x1b[0m at '%s' stage:\n\n", s)
 
 #define uint8_t     unsigned char
 #define uint16_t    unsigned short

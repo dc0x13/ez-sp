@@ -17,18 +17,18 @@ void usage_bad_usage (char **argv, const struct argxs_res *res)
     {
         case argxs_fatal_non_sense :
         case argxs_fatal_undef_flag:
-            fprintf(stderr, "  not being able to parse '%s' as a program's flag, make sure\n", argv[res->argc]);
+            fprintf(stderr, "  not being able to parse '%s' as a program's flag, \x1b[1mmake sure\x1b[0m\n", argv[res->argc]);
             fprintf(stderr, "  of available flags by running 'ez-sp --help' :)\n\n");
             break;
 
         case argxs_fatal_unnecessary_arg:
             fprintf(stderr, "  giving extra argument to a flag which already has its argument.\n");
-            fprintf(stderr, "  make sure of this flag usage by running 'ez-sp --help=%s'.\n\n", res->last->flag->flagname);
+            fprintf(stderr, "  \x1b[1mmake sure\x1b[0m of this flag usage by running 'ez-sp --help=%s'.\n\n", res->last->flag->flagname);
             break;
 
         case argxs_fatal_arg_expected:
             fprintf(stderr, "  expecting an argument to be given, but got nothing instead :(.\n");
-            fprintf(stderr, "  make sure of this flag usage by running 'ez-sp --help=%s'.\n\n", res->last->flag->flagname);
+            fprintf(stderr, "  \x1b[1mmake sure\x1b[0m of this flag usage by running 'ez-sp --help=%s'.\n\n", res->last->flag->flagname);
             break;
     }
 
