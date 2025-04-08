@@ -42,15 +42,15 @@
 #define false       -1
 
 struct Sheet {
-    char    *src;
-    char    *name;
-    size_t  length;
-    uint8_t no;
+    char     *src;
+    char     *name;
+    size_t   length;
+    uint16_t norows, nocols;
+    uint8_t  no;
 };
 
 struct Program {
     struct {
-        char    sep;
         char    *sheetnames[common_macro_max_no_sheets];
         char    *fxsfilename;
         char    *stlfilename;

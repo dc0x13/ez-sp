@@ -14,10 +14,11 @@ static void recive_execution_args (char**, struct Program*, const uint32_t);
 static void create_workbook (struct Program*);
 
 static void read_sheet_content (struct Sheet*);
+static void meassure_sheet_size (struct Sheet*, const char);
 
 int main (int argc, char **argv)
 {
-    struct Program program = { .xargs.sep = lexer_macro_default_sep, };
+    struct Program program = { .xargs.separator = lexer_macro_default_sep };
     recive_execution_args(argv, &program, argc);
     create_workbook(&program);
 
@@ -87,6 +88,9 @@ static void create_workbook (struct Program *program)
         sheet->name = program->xargs.sheetnames[i];
         sheet->no   = i;
         read_sheet_content(sheet);
+        meassure_sheet_size(sheet, program->xargs.separator);
+
+        printf("%s: %d %d\n", sheet->name, sheet->norows, sheet->nocols);
     }
 }
 
@@ -127,4 +131,24 @@ static void read_sheet_content (struct Sheet *sheet)
     }
 
     fclose(file);
+}
+
+static void meassure_sheet_size (struct Sheet *sheet, const char sep)
+{
+    uint16_t cols = 0;
+
+    for (size_t i = 0; i < sheet->length; i++)
+    {
+        const char this = sheet->src[i];
+        if (this == sep)
+        {
+            cols++;
+        } else if (this == '\n')
+        {
+            sheet->nocols = (cols > sheet->nocols) ? cols : sheet->nocols;
+            cols = 0;
+            sheet->norows++;
+        }
+    }
+    sheet->nocols = (cols > sheet->nocols) ? cols : sheet->nocols;
 }
