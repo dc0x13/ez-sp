@@ -15,7 +15,7 @@ static void programs_usage (void);
 
 void usage_bad_usage (char **argv, const struct argxs_res *res)
 {
-    common_macro_init_error_msg("arguments");
+    common_macro_init_error_msg(common_macro_stage_xargs_processing);
 
     switch (res->fatal)
     {

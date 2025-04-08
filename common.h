@@ -10,9 +10,22 @@
 
 #include <stdio.h>
 
-#define common_macro_max_no_sheets      10
-#define common_macro_init_error_msg(s)  fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;31merror\x1b[0m at '%s' stage:\n\n", s)
-#define common_macro_init_warnr_msg(s)  fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;33mwarning\x1b[0m at '%s' stage:\n", s)
+#define common_macro_max_no_sheets       10
+
+#define common_macro_init_error_msg(s)   fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;31merror\x1b[0m at '%s' stage:\n\n", s)
+#define common_macro_init_warnr_msg(s)   fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;33mwarning\x1b[0m at '%s' stage:\n", s)
+
+#define common_macro_check_alloc(ptr, s) \
+  do { \
+    if (ptr) break; \
+    common_macro_init_error_msg(s); \
+    fprintf(stderr, "  having problem to allocate memory into the heap :(\n"); \
+    fprintf(stderr, "  this in an internal error\n\n"); \
+  } while (0)
+
+
+#define common_macro_stage_xargs_processing "execution-arguments-processing"
+#define common_macro_stage_sheet_crafting   "sheet-crafting"
 
 #define uint8_t     unsigned char
 #define uint16_t    unsigned short
@@ -29,7 +42,9 @@
 #define false       -1
 
 struct Sheet {
+    char    *src;
     char    *name;
+    size_t  length;
     uint8_t no;
 };
 
@@ -43,6 +58,7 @@ struct Program {
         char    separator;
     } xargs;
 
+    struct  Sheet *workbook;
     uint8_t nosheets;
 };
 

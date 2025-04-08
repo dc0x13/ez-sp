@@ -6,9 +6,10 @@
 #  /__.-'|_|--|_|
 #
 OBJS = main.o argxs.o usage.o
+NO = -Wno-switch
 STD = -std=c99
 OPT = -O0
-FLAGS = -Wall -Wpedantic -Wextra $(STD) $(OPT)
+FLAGS = -Wall -Wpedantic -Wextra $(STD) $(OPT) $(NO)
 CXX = gcc
 NAME = ez-sp
 
