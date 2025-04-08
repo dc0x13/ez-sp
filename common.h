@@ -23,7 +23,6 @@
     fprintf(stderr, "  this in an internal error\n\n"); \
   } while (0)
 
-
 #define common_macro_stage_xargs_processing "execution-arguments-processing"
 #define common_macro_stage_sheet_crafting   "sheet-crafting"
 
@@ -41,7 +40,19 @@
 #define true        1
 #define false       -1
 
+struct Token {
+    char      *definition;
+    uint16_t  noline;
+    uint16_t  offset;
+};
+
+struct Cell {
+    uint16_t    col;
+    uint16_t    row;
+};
+
 struct Sheet {
+    struct   Cell *grid;
     char     *src;
     char     *name;
     size_t   length;
@@ -57,7 +68,6 @@ struct Program {
         char    *formatname;
         char    separator;
     } xargs;
-
     struct  Sheet *workbook;
     uint8_t nosheets;
 };

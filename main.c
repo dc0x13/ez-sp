@@ -22,6 +22,9 @@ int main (int argc, char **argv)
     recive_execution_args(argv, &program, argc);
     create_workbook(&program);
 
+    for (uint8_t i = 0; i < program.nosheets; i++)
+    { lexer_lex_this_shit(&program.workbook[i], program.xargs.separator); }
+
     return 0;
 }
 
@@ -90,7 +93,8 @@ static void create_workbook (struct Program *program)
         read_sheet_content(sheet);
         meassure_sheet_size(sheet, program->xargs.separator);
 
-        printf("%s: %d %d\n", sheet->name, sheet->norows, sheet->nocols);
+        sheet->grid = (struct Cell*) calloc(sheet->norows * sheet->nocols, sizeof(struct Cell));
+        common_macro_check_alloc(sheet->grid, common_macro_stage_sheet_crafting);
     }
 }
 

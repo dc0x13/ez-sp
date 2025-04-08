@@ -5,7 +5,7 @@
 #   __/ (  | (  |      Apr 07 2025
 #  /__.-'|_|--|_|
 #
-OBJS = main.o argxs.o usage.o
+OBJS = main.o argxs.o usage.o lexer.o
 NO = -Wno-switch
 STD = -std=c99
 OPT = -O0
