@@ -52,5 +52,21 @@ static void recive_execution_args (char **argv, struct Program *program, const u
         }
     }
 
+    for (; program->nosheets <= res->no_p_args; program->nosheets++)
+    {
+        if (program->nosheets == common_macro_max_no_sheets)
+        {
+            common_macro_init_warnr_msg("arguments");
+            fprintf(stderr, "  sheets from '%s' and further cannot be processed, maximum number of sheets reached.\n\n", res->p_args[program->nosheets - 1]);
+            break;
+        }
+        program->xargs.sheetnames[program->nosheets + 1] = res->p_args[program->nosheets];
+    }
+
+    if (program->xargs.sheetnames[0] == NULL)
+    {
+        usage_provide_help(NULL);
+    }
+
     argxs_clean(res);
 }
