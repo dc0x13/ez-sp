@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 static void recive_execution_args (char**, struct Program*, const uint32_t);
-static void create_workbook (struct Program*);
+static uint16_t create_workbook (struct Program*);
 
 static void read_sheet_content (struct Sheet*);
 static void meassure_sheet_size (struct Sheet*, const char);
@@ -20,7 +20,9 @@ int main (int argc, char **argv)
 {
     struct Program program = { .xargs.separator = lexer_macro_default_sep };
     recive_execution_args(argv, &program, argc);
-    create_workbook(&program);
+
+    uint16_t maxofxols = create_workbook(&program);
+    lexer_build_base_25(maxnocols);
 
     for (uint8_t i = 0; i < program.nosheets; i++)
     { lexer_lex_this_shit(&program.workbook[i], program.xargs.separator); }
@@ -80,8 +82,10 @@ static void recive_execution_args (char **argv, struct Program *program, const u
     argxs_clean(res);
 }
 
-static void create_workbook (struct Program *program)
+static uint16_t create_workbook (struct Program *program)
 {
+    uint16_t maxnocols = 0;
+
     program->workbook = (struct Sheet*) calloc(program->nosheets, sizeof(struct Sheet));
     common_macro_check_alloc(program->workbook, common_macro_stage_sheet_crafting);
 
@@ -95,7 +99,11 @@ static void create_workbook (struct Program *program)
 
         sheet->grid = (struct Cell*) calloc(sheet->norows * sheet->nocols, sizeof(struct Cell));
         common_macro_check_alloc(sheet->grid, common_macro_stage_sheet_crafting);
+
+        maxnocols = (maxnocols > sheet->nocols) ? maxnocols : sheet->nocols;
     }
+
+    return maxnocols;
 }
 
 static void read_sheet_content (struct Sheet *sheet)
@@ -154,5 +162,13 @@ static void meassure_sheet_size (struct Sheet *sheet, const char sep)
             sheet->norows++;
         }
     }
+
     sheet->nocols = (cols > sheet->nocols) ? cols : sheet->nocols;
+    if (sheet->nocols == 0 || sheet->norows == 0)
+    {
+        common_macro_init_error_msg(common_macro_stage_sheet_crafting);
+        fprintf(stderr, "  the '%s' sheet does not have anything defined\n", sheet->name);
+        fprintf(stderr, "  make sure the table is well structured.\n\n");
+        exit(EXIT_FAILURE);
+    }
 }

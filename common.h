@@ -25,6 +25,7 @@
 
 #define common_macro_stage_xargs_processing "execution-arguments-processing"
 #define common_macro_stage_sheet_crafting   "sheet-crafting"
+#define common_macro_stage_analyzing_sheets "sheet-analzying"
 
 #define uint8_t     unsigned char
 #define uint16_t    unsigned short
@@ -40,18 +41,58 @@
 #define true        1
 #define false       -1
 
-struct Token {
+enum TokenKind
+{
+    /* Single character tokens */
+    token_is_clone_up            = '^',
+    token_is_lt_parentheses      = '(',
+    token_is_rt_parentheses      = ')',
+    token_is_addition_sign       = '+',
+    token_is_subtraction_sign    = '-',
+    token_is_division_sign       = '/',
+    token_is_multiplication_sign = '*',
+    token_is_expression_sign     = '=',
+    token_is_conditional_sign    = '?',
+    token_is_less_than_sign      = '<',
+    token_is_greater_than_sign   = '>',
+
+    /* Double character tokens */
+    token_is_equal_to_sign,
+    token_is_less_eq_than_sign,
+    token_is_great_eq_than_sign,
+
+    /* References */
+    token_is_const_reference     = '$',
+    token_is_relat_reference     = '@',
+
+    /* Literal values */
+    token_is_string_literal      = '"',
+    token_is_number_literal,
+    token_is_boole_literal,
+};
+
+struct Token
+{
+    union {
+        long double number;
+        struct      { char *src; uint16_t length; } string;
+        struct      { uint16_t row, col, nosheet; } reference;
+    } as;
+
     char      *definition;
     uint16_t  noline;
     uint16_t  offset;
+    enum      TokenKind kind;
 };
 
-struct Cell {
+struct Cell
+{
     uint16_t    col;
     uint16_t    row;
 };
 
-struct Sheet {
+struct Sheet
+{
     struct   Cell *grid;
     char     *src;
     char     *name;
@@ -60,7 +101,8 @@ struct Sheet {
     uint8_t  no;
 };
 
-struct Program {
+struct Program
+{
     struct {
         char    *sheetnames[common_macro_max_no_sheets];
         char    *fxsfilename;
