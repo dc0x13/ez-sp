@@ -21,7 +21,7 @@ int main (int argc, char **argv)
     struct Program program = { .xargs.separator = lexer_macro_default_sep };
     recive_execution_args(argv, &program, argc);
 
-    uint16_t maxofxols = create_workbook(&program);
+    uint16_t maxnocols = create_workbook(&program);
     lexer_build_base_25(maxnocols);
 
     for (uint8_t i = 0; i < program.nosheets; i++)

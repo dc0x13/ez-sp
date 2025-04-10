@@ -70,3 +70,12 @@ static void programs_usage (void)
     printf(usage, __DATE__, __TIME__);
     exit(EXIT_SUCCESS);
 }
+
+static void help_document (void) { /*TODO*/ }
+static void help_functions (void) { /*TODO*/ }
+static void help_style (void) { /*TODO*/ }
+static void help_formats (void) { /*TODO*/ }
+static void help_separator (void) { /*TODO*/ }
+static void help_help (void) { /*TODO*/ }
+static void help_external_refs (void) { /*TODO*/ }
+

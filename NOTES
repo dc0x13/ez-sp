@@ -1,0 +1,8 @@
+
+    About refrences
+
+    @a3         -> variable reference
+    $a3         -> constant reference
+    @sheet2:a3  -> external variable refrence
+    $sheet2:a3  -> external variable refrence
+

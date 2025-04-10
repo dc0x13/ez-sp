@@ -23,6 +23,20 @@
     fprintf(stderr, "  this in an internal error\n\n"); \
   } while (0)
 
+#define common_macro_highlight_error(tok, s, R, C) \
+  do { \
+    common_macro_init_error_msg(s); \
+    fprintf(stderr, "  cannot continue due to error found at %d:%d cell\n", R, C); \
+    fprintf(stderr, "  %-5d ", tok.noline); \
+    uint16_t printc = 0; \
+    for (uint16_t i = 0; tok.definition[i] != 10; i++) \
+        printc++; \
+    fprintf(stderr, "%.*s\n        \x1b[31m", printc, tok.definition); \
+    for (uint16_t i = 0; i < tok.length; i++) \
+        fprintf(stderr, "~"); \
+    fprintf(stderr, "\x1b[0m\n"); \
+  } while (0)
+
 #define common_macro_stage_xargs_processing "execution-arguments-processing"
 #define common_macro_stage_sheet_crafting   "sheet-crafting"
 #define common_macro_stage_analyzing_sheets "sheet-analzying"
@@ -80,6 +94,7 @@ struct Token
     } as;
 
     char      *definition;
+    uint16_t  length;
     uint16_t  noline;
     uint16_t  offset;
     enum      TokenKind kind;

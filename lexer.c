@@ -8,13 +8,17 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define own_macro_set_coords_of(c, y, x)   do { c->row = y - 1, c->col = x; } while (0)
 
 static uint64_t *Base25 = NULL;
 
 static enum TokenKind determinate_compound_token_kind (const char, const char);
-static size_t handle_reference_definition (const char*, uint16_t*, struct Token*);
+static size_t handle_reference_definition (uint16_t*, struct Token*, const uint16_t, const uint16_t);
+
+static boolean_t look_up_for_colon_in_reference_definition (const char*, size_t*);
 
 void lexer_build_base_25 (const uint16_t maxnocols)
 {
@@ -22,7 +26,7 @@ void lexer_build_base_25 (const uint16_t maxnocols)
      * of columns found in some sheet and will compute the n first powers of 25.
      */
     
-    Base25 = (uint64_t) calloc(maxnocols, sizeof(uint64_t));
+    Base25 = (uint64_t*) calloc(maxnocols, sizeof(uint64_t));
     common_macro_check_alloc(Base25, common_macro_stage_analyzing_sheets);
 
     Base25[0] = 1;
@@ -63,6 +67,7 @@ void lexer_lex_this_shit (struct Sheet *sheet, const char sep)
             .definition = sheet->src + i,
             .noline     = numberline,
             .offset     = offsetline++,
+            .length     = 1,
         };
 
         switch (this)
@@ -85,7 +90,7 @@ void lexer_lex_this_shit (struct Sheet *sheet, const char sep)
                 break;
 
             case token_is_const_reference:
-            case token_is_relat_reference: handle_reference_definition(); break;
+            case token_is_relat_reference: i += handle_reference_definition(&offsetline, &token, cc->row, cc->col); break;
             case token_is_string_literal:  break;
             case token_is_number_literal:  break;
 
@@ -108,13 +113,44 @@ static enum TokenKind determinate_compound_token_kind (const char current, const
     return (nextone == '=') ? token_is_equal_to_sign : token_is_expression_sign;
 }
 
-static size_t handle_reference_definition (uint16_t *offset, struct Token *token)
+/*
+ *  _____________________________________
+ * / all of this code is about lexing     \
+ * \ references and all what they mean... /
+ *  --------------------------------------
+ *         \   ^__^
+ *          \  (oo)\_______
+ *             (__)\       )\/\
+ *                 ||----w |
+ *                 ||     ||
+ */
+static size_t handle_reference_definition (uint16_t *offset, struct Token *token, const uint16_t row, const uint16_t col)
 {
-    size_t incb = 1;
+    size_t adv = 0;
+    const boolean_t is_external = look_up_for_colon_in_reference_definition(token->definition + 1, &adv);
 
-    // @abc
+    if (is_external == true)
+    {
+        if (adv == 0)
+        {
+            common_macro_highlight_error((*token), common_macro_stage_analyzing_sheets, row, col);
+            fprintf(stderr, "  bad definition of external reference, run 'ez-sp --help external-refs'\n\n");
+            exit(EXIT_FAILURE);
+        }
+        char *extername = strtok(token->definition + 1, ":");
+    }
 
+    printf("plus: %ld\n", adv);
 
-    /* TODO: do it for external references */
+    return adv;
+}
 
+static boolean_t look_up_for_colon_in_reference_definition (const char *src, size_t *adv)
+{
+    for (; src[*adv] != ':'; *adv += 1)
+    {
+        if (isspace(src[*adv]) || !isalpha(src[*adv]))
+            return false;
+    }
+    return true;
 }
