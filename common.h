@@ -1,132 +1,26 @@
-/*                 __
- *                / _)
- *       _.----._/ /    dc0x13
- *      /         /     part of `ez-sp` project.
- *   __/ (  | (  |      Apr 07 2025
- *  /__.-'|_|--|_|
- */
-#ifndef EZ_SP_COMMON_H
-#define EZ_SP_COMMON_H
+#ifndef SHEET_COMMON_H
+#define SHEET_COMMON_H
+
+#define macro_common_init_error(s)      fprintf(stderr, "\n\x1b\x1b[1msheet:\x1b[0m cannot continue with the process (\x1b[31mfailed\x1b[0m at '\x1b[1m%s\x1b[0m' stage)\n", s)
+
+/* Engine constants */
+#define macro_common_max_no_sheets      2
+
+/* Stages of the program, used for error messages */
+#define macro_common_stage_arguments    "arguments"
+
 
 #include <stdio.h>
-
-#define common_macro_max_no_sheets       10
-
-#define common_macro_init_error_msg(s)   fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;31merror\x1b[0m at '%s' stage:\n\n", s)
-#define common_macro_init_warnr_msg(s)   fprintf(stderr, "\n\x1b[1mez-sp\x1b[0m: simple spread sheet presents an \x1b[1;33mwarning\x1b[0m at '%s' stage:\n", s)
-
-#define common_macro_check_alloc(ptr, s) \
-  do { \
-    if (ptr) break; \
-    common_macro_init_error_msg(s); \
-    fprintf(stderr, "  having problem to allocate memory into the heap :(\n"); \
-    fprintf(stderr, "  this in an internal error\n\n"); \
-  } while (0)
-
-#define common_macro_highlight_error(tok, s, R, C) \
-  do { \
-    common_macro_init_error_msg(s); \
-    fprintf(stderr, "  cannot continue due to error found at %d:%d cell\n", R, C); \
-    fprintf(stderr, "  %-5d ", tok.noline); \
-    uint16_t printc = 0; \
-    for (uint16_t i = 0; tok.definition[i] != 10; i++) \
-        printc++; \
-    fprintf(stderr, "%.*s\n        \x1b[31m", printc, tok.definition); \
-    for (uint16_t i = 0; i < tok.length; i++) \
-        fprintf(stderr, "~"); \
-    fprintf(stderr, "\x1b[0m\n"); \
-  } while (0)
-
-#define common_macro_stage_xargs_processing "execution-arguments-processing"
-#define common_macro_stage_sheet_crafting   "sheet-crafting"
-#define common_macro_stage_analyzing_sheets "sheet-analzying"
-
-#define uint8_t     unsigned char
-#define uint16_t    unsigned short
-#define uint32_t    unsigned int
-#define uint64_t    unsigned long
-
-#define int8_t      signed char
-#define int16_t     signed short
-#define int32_t     signed int
-#define int64_t     signed long
-
-#define boolean_t   signed char
-#define true        1
-#define false       -1
-
-enum TokenKind
-{
-    /* Single character tokens */
-    token_is_clone_up            = '^',
-    token_is_lt_parentheses      = '(',
-    token_is_rt_parentheses      = ')',
-    token_is_addition_sign       = '+',
-    token_is_subtraction_sign    = '-',
-    token_is_division_sign       = '/',
-    token_is_multiplication_sign = '*',
-    token_is_expression_sign     = '=',
-    token_is_conditional_sign    = '?',
-    token_is_less_than_sign      = '<',
-    token_is_greater_than_sign   = '>',
-
-    /* Double character tokens */
-    token_is_equal_to_sign,
-    token_is_less_eq_than_sign,
-    token_is_great_eq_than_sign,
-
-    /* References */
-    token_is_const_reference     = '$',
-    token_is_relat_reference     = '@',
-
-    /* Literal values */
-    token_is_string_literal      = '"',
-    token_is_number_literal,
-    token_is_boole_literal,
-};
-
-struct Token
-{
-    union {
-        long double number;
-        struct      { char *src; uint16_t length; } string;
-        struct      { uint16_t row, col, nosheet; } reference;
-    } as;
-
-    char      *definition;
-    uint16_t  length;
-    uint16_t  noline;
-    uint16_t  offset;
-    enum      TokenKind kind;
-};
-
-struct Cell
-{
-    uint16_t    col;
-    uint16_t    row;
-};
-
-struct Sheet
-{
-    struct   Cell *grid;
-    char     *src;
-    char     *name;
-    size_t   length;
-    uint16_t norows, nocols;
-    uint8_t  no;
-};
+#include <stdint.h>
+#include <stdbool.h>
 
 struct Program
 {
-    struct {
-        char    *sheetnames[common_macro_max_no_sheets];
-        char    *fxsfilename;
-        char    *stlfilename;
-        char    *formatname;
-        char    separator;
+    struct
+    {
+        char *sheetnames[macro_common_max_no_sheets];
     } xargs;
-    struct  Sheet *workbook;
-    uint8_t nosheets;
+    uint16_t nosheets;
 };
 
 #endif

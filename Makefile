@@ -1,23 +1,17 @@
-#                 __
-#                / _)
-#       _.----._/ /    dc0x13
-#      /         /     part of `ez-sp` project.
-#   __/ (  | (  |      Apr 07 2025
-#  /__.-'|_|--|_|
-#
-OBJS = main.o argxs.o usage.o lexer.o
-NO = -Wno-switch
-STD = -std=c99
-OPT = -O0
-FLAGS = -Wall -Wpedantic -Wextra $(STD) $(OPT) $(NO)
-CXX = gcc
-NAME = ez-sp
+objs = main.o usage.o argxs.o
+std = -std=c99
+opt = -O0
+no = -Wno-switch
+flags = -Wall -Wpedantic -Wextra $(std) $(opt) $(no)
+name = sheet
+cxx = gcc
 
-all: $(NAME)
+all: $(name)
 
-$(NAME): $(OBJS)
-	$(CXX)	-o $(NAME) $(OBJS)
+$(name): $(objs)
+	$(cxx)	-o $(name) $(objs)
 %.o: %.c
-	$(CXX)	-c $< $(FLAGS)
+	$(cxx)	-c $< $(flags)
 clean:
-	rm	-f $(NAME) $(OBJS)	&& clear
+	rm	-f $(objs) $(name) && clear
+
