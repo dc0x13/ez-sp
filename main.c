@@ -1,12 +1,12 @@
-#include "common.h"
+#include "lexer.h"
 #include "usage.h"
 
 #include <string.h>
 
 static void recive_execution_args (const uint32_t, char**, struct Program*);
-static void open_nth_document (const char*, struct Sheet*);
-
 static size_t read_file (const char*, char**);
+
+static void set_sheet_dimensions (struct Sheet*);
 
 int main (int argc, char **argv)
 {
@@ -18,7 +18,12 @@ int main (int argc, char **argv)
     macro_common_check_alloc(program.workbook, macro_common_stage_sheet_craft);
 
     for (uint16_t i = 0; i < program.nosheets; i++)
-    { open_nth_document(program.xargs.sheetnames[i], &program.workbook[i]); }
+    {
+        struct Sheet *sheet = &program.workbook[i];
+        sheet->name = program.xargs.sheetnames[i];
+        sheet->length = read_file(sheet->name, &sheet->source);
+        set_sheet_dimensions(sheet);
+    }
 
     return 0;
 
@@ -69,12 +74,6 @@ static void recive_execution_args (const uint32_t argc, char **argv, struct Prog
     argxs_clean(res);
 }
 
-static void open_nth_document (const char *name, struct Sheet *sheet)
-{
-    sheet->name   = (char*) name;
-    sheet->length = read_file(name, &sheet->source);
-}
-
 static size_t read_file (const char *filename, char **source)
 {
     FILE *file = fopen(filename, "r");
@@ -111,4 +110,34 @@ static size_t read_file (const char *filename, char **source)
 
     fclose(file);
     return bytes;
+}
+
+static void set_sheet_dimensions (struct Sheet *sheet)
+{
+    uint16_t nocols = 0;
+
+    for (size_t i = 0; i < sheet->length; i++)
+    {
+        const char ch = sheet->source[i];
+        if (ch == macro_lexer_cell_ch_sep)
+        {
+            nocols++;
+            continue;
+        }
+        if (ch == '\n')
+        {
+            sheet->norows++;
+            sheet->nocols = (nocols > sheet->nocols) ? nocols : sheet->nocols;
+            nocols = 0;
+        }
+    }
+
+    sheet->nocols = (nocols > sheet->nocols) ? nocols : sheet->nocols;
+    if (sheet->norows == 0 && sheet->nocols == 0 || sheet->nocols == 0)
+    {
+        macro_common_init_error(macro_common_stage_sheet_craft);
+        fprintf(stderr, "  the sheet '%s' does not contain any content on it\n", sheet->name);
+        fprintf(stderr, "  make sure your sheets have some shit\n\n");
+        exit(EXIT_FAILURE);
+    }
 }

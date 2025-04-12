@@ -19,9 +19,10 @@
 
 struct Sheet
 {
-    char    *source;
-    size_t  length;
-    char    *name;
+    char     *source;
+    char     *name;
+    size_t   length;
+    uint16_t norows, nocols;
 };
 
 struct Program
