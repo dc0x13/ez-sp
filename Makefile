@@ -1,17 +1,12 @@
-objs = main.o usage.o argxs.o
-std = -std=c99
-opt = -O0
-no = -Wno-switch
-flags = -Wall -Wpedantic -Wextra $(std) $(opt) $(no)
-name = sheet
-cxx = gcc
+objs = ursheet.o solver.o
+flags = -Wall -Wextra -Wpedantic -std=c11 -Wno-switch
+exec = ursh
 
-all: $(name)
+all: $(exec)
 
-$(name): $(objs)
-	$(cxx)	-o $(name) $(objs)
+$(exec): $(objs)
+	gcc	-o $(exec) $(objs)
 %.o: %.c
-	$(cxx)	-c $< $(flags)
+	gcc	-c $< $(flags)
 clean:
-	rm	-f $(objs) $(name) && clear
-
+	rm	-rf $(objs) $(exec)
